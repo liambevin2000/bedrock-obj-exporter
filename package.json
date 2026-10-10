@@ -1,0 +1,51 @@
+{
+  "name": "bedrock-obj-exporter",
+  "productName": "Bedrock OBJ Exporter",
+  "version": "1.0.0",
+  "minShell": "1.0.0",
+  "description": "Pick an area of a Minecraft Bedrock world on a map, preview it in 3D, export it as OBJ or to Cinema 4D with the world's resource packs.",
+  "author": "liambevin2000",
+  "main": "boot.js",
+  "updates": {
+    "url": "https://raw.githubusercontent.com/liambevin2000/bedrock-obj-exporter/main/",
+    "installer": "https://github.com/liambevin2000/bedrock-obj-exporter/releases/latest"
+  },
+  "scripts": {
+    "start": "electron .",
+    "export": "node tools/export-cli.js",
+    "release": "node release.js",
+    "dist": "electron-builder --win nsis"
+  },
+  "build": {
+    "appId": "com.liambevin2000.bedrockobjexporter",
+    "productName": "Bedrock OBJ Exporter",
+    "asar": false,
+    "files": [
+      "boot.js",
+      "src/**/*",
+      "c4d-plugin/**/*",
+      "changelog.json",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "artifactName": "Bedrock-OBJ-Exporter-Setup-${version}.${ext}",
+      "shortcutName": "Bedrock OBJ Exporter"
+    }
+  },
+  "dependencies": {
+    "pngjs": "^7.0.0",
+    "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  }
+}

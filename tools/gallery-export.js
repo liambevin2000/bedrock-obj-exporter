@@ -1,0 +1,11 @@
+﻿const { Session } = require('../src/core/exporter');
+const s = new Session({ worldDir: 'gallery:' });
+const size = s.world.size;
+const t = Date.now();
+const r = s.exportObj({ dim: 0, x0: 0, y0: 0, z0: 0, x1: size[0] - 1, y1: 6, z1: size[1] - 1 }, process.argv[2], {});
+console.log('gallery', size.join('x'), '->', r.quads, 'faces,', r.materials, 'materials in', Date.now() - t, 'ms');
+console.log('not drawn / problems:', r.unknown.map((u) => u.join(': ')).join(' | ') || 'none');
+const missing = s.models.list.filter((m) => m.quads && m.quads.some((q) => q.slot.mat === s.res.missing)).map((m) => m.name);
+console.log('models using the missing-texture placeholder:', [...new Set(missing)].join(', ') || 'none');
+const empty = require('../src/core/gallery').ENTRIES.filter((e) => { const m = s.models.list[s.models.idFor(e)]; return !m || !m.quads || !m.quads.length; }).map((e) => e.name);
+console.log('gallery entries with no geometry:', [...new Set(empty)].join(', ') || 'none');

@@ -1,0 +1,188 @@
+{
+  "version": "1.0.0",
+  "minShell": "1.0.0",
+  "date": "2026-10-10",
+  "notes": [
+    "First shared version.",
+    "Pick an area on the map, preview it in 3D, export to OBJ or Cinema 4D.",
+    "Updates itself from GitHub from now on."
+  ],
+  "download": "https://github.com/liambevin2000/bedrock-obj-exporter/releases/latest",
+  "files": [
+    {
+      "path": "src/core/biomes.js",
+      "size": 4381,
+      "sha256": "64a549e6425becf9480a089f1ef595e17c15448f126df777cc71628ea205913a"
+    },
+    {
+      "path": "src/core/c4dwriter.js",
+      "size": 4743,
+      "sha256": "755a8f81326796c82a4feecb8554045c880ff2d0a6cfaa990f1c7816260e4eba"
+    },
+    {
+      "path": "src/core/entities.js",
+      "size": 8394,
+      "sha256": "757942cd4a18db299bc8b484f99ea60231c94f7ce77c84b2b265b86fdcae6781"
+    },
+    {
+      "path": "src/core/exporter.js",
+      "size": 6579,
+      "sha256": "dbf311a3621c0c967b81510f7f44005f4d177a8e5992fd1aa7c795e0b6fab211"
+    },
+    {
+      "path": "src/core/gallery.js",
+      "size": 11015,
+      "sha256": "c1583ec711fe69a85cd8329ccb051d23d852ac6170267fe578eb1e0bc825d195"
+    },
+    {
+      "path": "src/core/geometry.js",
+      "size": 4383,
+      "sha256": "452693f206292050abf9dc6961d103116a27a0027c89569749546fbce948626b"
+    },
+    {
+      "path": "src/core/leveldb.js",
+      "size": 13501,
+      "sha256": "4b532295a72cef91a8350203f8eee29a5dd789ddb63123fd95a6729d546187a3"
+    },
+    {
+      "path": "src/core/locate.js",
+      "size": 4292,
+      "sha256": "480b533240c3b8673d22d2e7f1c39edf43539ccb11123cdb14d4de94b5ce39e3"
+    },
+    {
+      "path": "src/core/mesher.js",
+      "size": 24304,
+      "sha256": "d59354a5ad2d804abb3fb409c8939c3cba5a66c8ea55de6a3b63527dbf9ac11e"
+    },
+    {
+      "path": "src/core/models.js",
+      "size": 28295,
+      "sha256": "d94b2294b825d29f0fbfa238038172259321a105e5712b5fecce48d08a8b3ab8"
+    },
+    {
+      "path": "src/core/molang.js",
+      "size": 5132,
+      "sha256": "2ff9f8e2bbb4ffceb0b86dddf7eabbf8fc1805ad287d330ec00977b6eb89d9a0"
+    },
+    {
+      "path": "src/core/nbt.js",
+      "size": 2054,
+      "sha256": "dfe268fb30d049cbf205b8b73478d5546123fc374e3588c378e649f0d7399e3f"
+    },
+    {
+      "path": "src/core/objects.js",
+      "size": 15276,
+      "sha256": "0aebee775b2899b8726be811a3f83aa689b34c47802c62f2822f103c8e07a4e5"
+    },
+    {
+      "path": "src/core/objwriter.js",
+      "size": 4874,
+      "sha256": "0afdee919422ba58e37dbeb8e4bf3330b3f56c6523d8c9232006b6f14cf9a9b3"
+    },
+    {
+      "path": "src/core/packs.js",
+      "size": 8931,
+      "sha256": "268594fbc3009ef41a736dad4856e36c83a53c92855ee94bf18658e53d545371"
+    },
+    {
+      "path": "src/core/quads.js",
+      "size": 8239,
+      "sha256": "67787623694cfcac930acbec7d80aab3e3c015a46d7a6e29ed8fcb8784dc17f2"
+    },
+    {
+      "path": "src/core/resources.js",
+      "size": 22297,
+      "sha256": "56f864cb9c8952a4c521e5d379764c32c6a5d38ac9ded421e1417ecbe96de3b9"
+    },
+    {
+      "path": "src/core/simplify.js",
+      "size": 7170,
+      "sha256": "687ae6473ec7f719dcaeea100b155999d2c877c49fca3e3485743d0c983b103d"
+    },
+    {
+      "path": "src/core/textart.js",
+      "size": 5813,
+      "sha256": "c09f90cf524c61a44b7821e09cb00f0801d8e3d30b7a65e995b3c3af3fef24ea"
+    },
+    {
+      "path": "src/core/vanilla-extra.js",
+      "size": 20445,
+      "sha256": "7007b8a5a1e6129c67e1eacbafb814ce4d24041e6d628b42fc69daf8d2a501c6"
+    },
+    {
+      "path": "src/core/voxels.js",
+      "size": 4889,
+      "sha256": "aebe41b754fc60d66ad5ff3d5da8ef4741b1d94823a579bc9cf06073d3ea1c3c"
+    },
+    {
+      "path": "src/core/world.js",
+      "size": 10800,
+      "sha256": "b41650e292018cda15a148ece756cb46ae88e1916adfcc52978509567f3730b3"
+    },
+    {
+      "path": "src/core/zip.js",
+      "size": 3055,
+      "sha256": "a2708a2e0045c62e6a1f600021b597057d2d81cc7bfaf7837a3115028665e826"
+    },
+    {
+      "path": "src/main.js",
+      "size": 10139,
+      "sha256": "6782ffd0bf9bc04db7087777cee6349e1a4a3662d1432d569d571a84f3f251bc"
+    },
+    {
+      "path": "src/preload.js",
+      "size": 1545,
+      "sha256": "a3b1f0c4e51dfd975ae6f49d7bc50259c791d7ac90361c292566228e6ebf8fde"
+    },
+    {
+      "path": "src/ui/app.js",
+      "size": 67236,
+      "sha256": "4ec34bb36c4064533c72564870a5e59251cf58eefbfe1ce54f9bdfccc57e4b31"
+    },
+    {
+      "path": "src/ui/index.html",
+      "size": 9417,
+      "sha256": "49f14f8a5130e9901628429aeb7d57cf4841213077b2f647569bb78eb2331847"
+    },
+    {
+      "path": "src/ui/pov.js",
+      "size": 10085,
+      "sha256": "df9a869cc6df3127ddf2c7dc780614982e05e3db90c6e3a1e4e288f09f0e35a6"
+    },
+    {
+      "path": "src/ui/preview.js",
+      "size": 26069,
+      "sha256": "e7641f23ff9ad1776e4e4bfc1e9535dfb645ac1147bd362ef16c8273525ac3bc"
+    },
+    {
+      "path": "src/ui/style.css",
+      "size": 11280,
+      "sha256": "066eb1e8168f903dbe6cc188c89fa08555c3bdf428e7435ac465652ca20b9662"
+    },
+    {
+      "path": "src/ui/vendor/OrbitControls.js",
+      "size": 32134,
+      "sha256": "80efaadea4f8a636a65fb0bd08bfef62f3d93a0bb94e2e7500f23176c5c07f4e"
+    },
+    {
+      "path": "src/updater.js",
+      "size": 4320,
+      "sha256": "36cc527d673feac1a5500edd17cfb8becef88a150645120318c85dbb59cd11e4"
+    },
+    {
+      "path": "src/worker.js",
+      "size": 8661,
+      "sha256": "81d63a481dbe1c683dd5a928ecd082fb4c495076c00f27acf59c608b9f322d14"
+    },
+    {
+      "path": "c4d-plugin/BedrockWorldImporter.pyp",
+      "size": 10597,
+      "sha256": "6e14dd98a7d89e31ee5cc3d5c8e7bda89b0ddf3ff6f0064bf7ae4be88a061317"
+    },
+    {
+      "path": "changelog.json",
+      "size": 244,
+      "sha256": "c83a7c8aaead7c6686b1a674ace0d5b713a6b4658cd223c1e3ead731a5661cae"
+    }
+  ]
+}

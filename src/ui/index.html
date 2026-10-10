@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' file: data: blob:">
+<title>Bedrock OBJ Exporter</title>
+<link rel="stylesheet" href="style.css">
+<script type="importmap">
+{ "imports": { "three": "../../node_modules/three/build/three.module.js", "three/addons/": "../../node_modules/three/examples/jsm/" } }
+</script>
+</head>
+<body>
+<aside id="worlds">
+  <header>
+    <h1>Worlds</h1>
+    <input id="worldSearch" type="search" placeholder="Search worlds" spellcheck="false">
+  </header>
+  <div id="worldList"></div>
+  <footer>
+    <button id="openWorldFile" class="ghost">Open .mcworld…</button>
+    <button id="openWorldFolder" class="ghost">Open folder…</button>
+  </footer>
+  <div id="updateBar" hidden></div>
+  <div id="versionLine"></div>
+</aside>
+
+<main>
+  <div id="topbar">
+    <div id="worldTitle">No world open</div>
+    <div class="spacer"></div>
+    <div class="seg" id="dimSeg">
+      <button data-dim="0" class="on">Overworld</button><button data-dim="1">Nether</button><button data-dim="2">End</button>
+    </div>
+    <div id="locateWrap">
+      <button id="locateBtn" class="small" title="Find a biome or a structure in this world and jump to it">Locate</button>
+      <div id="locatePanel" hidden>
+        <input id="locateSearch" type="search" placeholder="Search biomes and structures" spellcheck="false">
+        <div id="locateList"></div>
+      </div>
+    </div>
+    <label class="inline" title="Hide everything above this height on the map. Useful for the Nether roof, caves and interiors.">Map top Y
+      <input id="ceiling" type="number" placeholder="none" step="1">
+    </label>
+    <div class="seg" id="viewSeg">
+      <button data-view="map" class="on">Map</button><button data-view="preview">3D preview</button>
+    </div>
+  </div>
+
+  <div id="stage">
+    <canvas id="map"></canvas>
+    <div id="preview" hidden></div>
+    <div id="empty" class="overlay">
+      <div class="card">
+        <h2>Pick a world</h2>
+        <p>Choose a world on the left, or drop a world folder / <code>.mcworld</code> here.</p>
+      </div>
+    </div>
+    <div id="busy" class="overlay" hidden><div class="card"><div class="spinner"></div><p id="busyText">Opening world…</p></div></div>
+    <div id="hint">Drag to select an area · Right-drag or Space-drag to pan · Scroll to zoom · Shift snaps to chunks</div>
+    <div id="coords"></div>
+    <div id="locateBar" hidden>
+      <span id="locateInfo"></span>
+      <button id="locatePrev" class="small ghost" title="Previous place">◀</button>
+      <button id="locateNext" class="small ghost" title="Next place">▶</button>
+      <button id="locateClear" class="small ghost">Clear</button>
+    </div>
+    <div id="previewStats" hidden></div>
+    <div id="previewTools" hidden>
+      <label class="inline">Lighting
+        <select id="lighting">
+          <option value="flat">Simple</option>
+          <option value="minecraft">Minecraft (in-game)</option>
+          <option value="shadows">Sun with shadows</option>
+          <option value="soft">Sun with soft shadows</option>
+        </select>
+      </label>
+      <label class="check" title="Torches, lanterns, glowstone, lava and add-on blocks with light emission light up their surroundings"><input id="glow" type="checkbox"> Light sources glow</label>
+      <button id="pickBtn" class="small plain" title="Click a building or a tree in the 3D view to pick the whole thing, then show it alone or move it">Pick object</button>
+      <button id="povBtn" class="small" title="Walk through the selection in first person">Go into POV</button>
+    </div>
+    <div id="povHud" hidden><div id="crosshair"></div><div id="povInfo"></div></div>
+  </div>
+</main>
+
+<aside id="panel">
+  <section>
+    <h3>Selection</h3>
+    <div class="grid2">
+      <label>From X<input id="x0" type="number" step="1"></label>
+      <label>To X<input id="x1" type="number" step="1"></label>
+      <label>From Z<input id="z0" type="number" step="1"></label>
+      <label>To Z<input id="z1" type="number" step="1"></label>
+      <label>Bottom Y<input id="y0" type="number" step="1"></label>
+      <label>Top Y<input id="y1" type="number" step="1"></label>
+    </div>
+    <div class="row">
+      <button id="fitSurface" class="ghost small" title="From just below the lowest surface block to the highest one">Fit to surface</button>
+      <button id="fitAll" class="ghost small" title="Everything stored in these chunks, bedrock to sky">Full height</button>
+    </div>
+    <div id="selInfo" class="muted">Nothing selected</div>
+    <div id="gaps" hidden>
+      <div id="gapsText"></div>
+      <label class="check" title="Rebuilds each missing chunk from the saved terrain around it: blended ground height, the neighbours' ground layers and water level, with grass, flowers and other small plants scattered at the same density as next door. Trees and buildings are not invented."><input id="fill" type="checkbox"> Fill gaps with an estimate (experimental)</label>
+      <div class="row">
+        <button id="gapsGame" class="ghost small">Get them from the game…</button>
+        <button id="reload" class="ghost small" title="Read the world again after playing">Reload world</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="objPanel" hidden>
+    <h3>Picked object</h3>
+    <div id="objBody">
+      <div id="objInfo"></div>
+      <label class="check" title="The preview and both exports contain just this object, centred on itself"><input id="isolate" type="checkbox"> Show and export only this</label>
+      <label class="inline" title="Everything at this height and below is left out of the pick. Set it to the pavement or floor level when a click grabs the whole town; clear it to include everything connected.">Ground at Y
+        <input id="cutY" type="number" step="1" placeholder="none">
+        <button id="cutAuto" class="ghost small" title="Let the tool work out the ground level again">Auto</button>
+      </label>
+      <div class="row">
+        <button id="trimBtn" class="ghost small" title="Shows arrows on the pick's box: drag them in to cut parts off, or out to let the pick grow">Trim</button>
+        <button id="moveBtn" class="ghost small" title="Shows arrows on the object: drag one to slide it to a new place in the scene">Move it</button>
+        <button id="objClear" class="ghost small">Deselect</button>
+      </div>
+      <div id="moveInfo" class="muted"></div>
+    </div>
+    <button id="resetMoves" class="ghost small" hidden>Undo the move</button>
+  </section>
+
+  <section>
+    <h3>Resource packs</h3>
+    <div id="packs" class="muted">Open a world to see its packs.</div>
+    <div class="row">
+      <button id="addPack" class="ghost small">Add pack file…</button>
+      <button id="addPackFolder" class="ghost small">Add folder…</button>
+    </div>
+  </section>
+
+  <section>
+    <h3>Options</h3>
+    <label class="check" title="Joins neighbouring faces that share a texture into one large face with tiled UVs. Far fewer polygons."><input id="greedy" type="checkbox" checked> Merge flat faces into larger polygons</label>
+    <label class="check" title="Flattens every texture to a few solid colours, the same way Essential Cosmetic Studio's promo textures do: close shades merge into one, real accents stay. Applies to the preview and both exports."><input id="simplify" type="checkbox"> Simplify textures (flat colours)</label>
+    <label class="check" title="Add-on furniture, paintings, armor stands and minecarts standing in the selection. Mobs and dropped items are never included."><input id="ents" type="checkbox" checked> Include furniture and other entities</label>
+    <label class="inline">Scale <input id="scale" type="number" value="1" step="0.1" min="0.001"> <span class="muted">units per block</span></label>
+  </section>
+
+  <section class="actions">
+    <button id="previewBtn" class="primary" disabled>Preview in 3D</button>
+    <button id="exportBtn" class="accent" disabled>Export OBJ…</button>
+    <button id="c4dBtn" disabled title="Sends the selection to Cinema 4D. Then run Extensions > Import Bedrock World there.">Export to Cinema 4D</button>
+    <div id="progress" hidden><div id="progressBar"></div></div>
+    <div id="status"></div>
+  </section>
+</aside>
+
+<div id="modal" class="overlay" hidden>
+  <div class="card wide">
+    <h2>Get the missing chunks from Minecraft</h2>
+    <p>These chunks were never saved, so only the game can produce the real terrain. A ticking area makes it generate and save them.</p>
+    <ol>
+      <li>Open this world in Minecraft with cheats on, in the same dimension.</li>
+      <li>Run the <b>add</b> commands below in chat, one line at a time.</li>
+      <li>Wait about 15 seconds, then Save &amp; Quit.</li>
+      <li>Back here, click <b>Reload world</b>.</li>
+      <li>Next time you play, run the <b>remove</b> lines to tidy up.</li>
+    </ol>
+    <textarea id="cmds" readonly spellcheck="false"></textarea>
+    <div id="cmdsNote" class="muted"></div>
+    <div class="row">
+      <button id="copyCmds" class="primary">Copy add commands</button>
+      <button id="modalReload">Reload world</button>
+      <button id="modalClose" class="ghost">Close</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
