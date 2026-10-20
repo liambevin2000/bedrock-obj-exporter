@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.2 - 2026-10-20
+
+- The Cinema 4D plugin now goes in its own folder, and the extra loose copy that could hide other plugins is removed.
+
 ## 1.0.1 - 2026-10-20
 
 - Fixed textures turning into the purple missing-texture pattern after reloading a world several times.

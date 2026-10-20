@@ -1,5 +1,12 @@
 [
   {
+    "version": "1.0.2",
+    "date": "2026-10-20",
+    "changes": [
+      "The Cinema 4D plugin now goes in its own folder, and the extra loose copy that could hide other plugins is removed."
+    ]
+  },
+  {
     "version": "1.0.1",
     "date": "2026-10-20",
     "changes": [

@@ -148,21 +148,9 @@ function setupIpc() {
   ipcMain.handle('c4dPrepare', () => {
     const dir = path.join(app.getPath('documents'), 'BedrockObjExporter', 'c4d-export');
     const src = path.join(__dirname, '..', 'c4d-plugin', 'BedrockWorldImporter.pyp');
-    const installed = [], updated = [];
-    try {
-      const maxon = path.join(app.getPath('appData'), 'Maxon');
-      const plugin = fs.readFileSync(src);
-      for (const d of fs.readdirSync(maxon)) {
-        if (!/^Maxon Cinema 4D /.test(d)) continue;
-        const dest = path.join(maxon, d, 'plugins', 'BedrockWorldImporter.pyp');
-        const had = fs.existsSync(dest);
-        if (had && fs.readFileSync(dest).equals(plugin)) continue;
-        fs.mkdirSync(path.dirname(dest), { recursive: true });
-        fs.writeFileSync(dest, plugin);
-        (had ? updated : installed).push(d.replace(/^Maxon /, '').replace(/_[0-9A-F]{8}(_\w)?$/, ''));
-      }
-    } catch (err) { /* no Cinema 4D preferences folder: the export still works, the plugin can be added by hand */ }
-    return { dir, pluginSource: src, installed, updated };
+    let r = { installed: [], updated: [] };
+    try { r = require('./core/c4dinstall').installPlugin(path.join(app.getPath('appData'), 'Maxon'), src); } catch (err) { /* the export still works, the plugin can be added by hand */ }
+    return { dir, pluginSource: src, installed: r.installed, updated: r.updated };
   });
 
   // In-game helper that loads the chunks a world never saved (see core/chunkloader).

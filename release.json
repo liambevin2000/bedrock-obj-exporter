@@ -1,10 +1,9 @@
 {
-  "version": "1.0.1",
+  "version": "1.0.2",
   "minShell": "1.0.0",
   "date": "2026-10-20",
   "notes": [
-    "Fixed textures turning into the purple missing-texture pattern after reloading a world several times.",
-    "Missing chunks: one click adds a helper to the world that loads them all next time you open it in Minecraft."
+    "The Cinema 4D plugin now goes in its own folder, and the extra loose copy that could hide other plugins is removed."
   ],
   "download": "https://github.com/liambevin2000/bedrock-obj-exporter/releases/latest",
   "files": [
@@ -12,6 +11,11 @@
       "path": "src/core/biomes.js",
       "size": 4381,
       "sha256": "64a549e6425becf9480a089f1ef595e17c15448f126df777cc71628ea205913a"
+    },
+    {
+      "path": "src/core/c4dinstall.js",
+      "size": 2927,
+      "sha256": "53c92a15f7c7eab33b659ba578811caa0344d4e000b1bd33356253fa0fced8dd"
     },
     {
       "path": "src/core/c4dwriter.js",
@@ -130,8 +134,8 @@
     },
     {
       "path": "src/main.js",
-      "size": 10565,
-      "sha256": "c6857015205b45620c7a6deb15a07837b657e8790cf7dc72698ae3f85234a9f1"
+      "size": 10044,
+      "sha256": "792b8141f668eeb818a374237894218be142614bdfadb78df9e3c1ea20338914"
     },
     {
       "path": "src/preload.js",
@@ -185,8 +189,8 @@
     },
     {
       "path": "changelog.json",
-      "size": 554,
-      "sha256": "9f8cab5062c79aaf6b4d4b90a43c5957ea5c7220f658711faa31479040f90b71"
+      "size": 760,
+      "sha256": "7b41eff633491cb8d45d7dd3c32e56c5945adc6115b5db8d4c7c4477d15773bc"
     }
   ]
 }
