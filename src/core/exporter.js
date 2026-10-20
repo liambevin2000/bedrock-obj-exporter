@@ -138,7 +138,7 @@ class Session {
     };
   }
 
-  close() { this.world.close(); }
+  close() { this.world.close(); this.res.close(); }
 }
 
 function normalise(s) {

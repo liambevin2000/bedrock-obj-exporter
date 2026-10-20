@@ -58,7 +58,11 @@ class BrArchive {
     fs.readSync(this.fd, buf, 0, e[1], e[0]);
     return buf;
   }
+  close() { if (this.fd !== undefined) { try { fs.closeSync(this.fd); } catch (e) { /* already closed */ } this.fd = undefined; } }
 }
+
+// Running out of file handles is temporary: such a failure must not be remembered as "missing".
+const outOfHandles = (e) => e && (e.code === 'EMFILE' || e.code === 'ENFILE');
 
 // One pack on disk. Reads loose files first, then falls back to __brarchive bundles.
 class Pack {
@@ -75,10 +79,17 @@ class Pack {
     let a = this.archives.get(relDir);
     if (a === undefined) {
       const f = path.join(this.dir, '__brarchive', relDir + '.brarchive');
-      try { a = fs.existsSync(f) ? new BrArchive(f) : null; } catch (e) { a = null; }
+      try { a = fs.existsSync(f) ? new BrArchive(f) : null; } catch (e) { if (outOfHandles(e)) return null; a = null; }
       this.archives.set(relDir, a);
     }
     return a;
+  }
+
+  // Releases the archive files this pack holds open. Must be called when a world is closed:
+  // every reload opens fresh packs, and leftover handles pile up until Windows refuses new ones.
+  close() {
+    for (const a of this.archives.values()) if (a) a.close();
+    this.archives.clear();
   }
   read(rel) {
     const i = rel.lastIndexOf('/');
@@ -90,7 +101,7 @@ class Pack {
       loose = this.looseDirs.get(dir);
       if (loose === undefined) { loose = fs.existsSync(path.join(this.dir, dir)); this.looseDirs.set(dir, loose); }
     }
-    if (loose) { try { return fs.readFileSync(path.join(this.dir, rel)); } catch (e) { /* not loose */ } }
+    if (loose) { try { return fs.readFileSync(path.join(this.dir, rel)); } catch (e) { if (outOfHandles(e)) throw e; /* not loose */ } }
     if (this.hasArchives) {
       if (i > 0) {
         const a = this._archive(rel.slice(0, i));
@@ -234,4 +245,4 @@ function worldPacks(worldDir, kind, comMojangRoots) {
   return { packs, missing };
 }
 
-module.exports = { parseJson, readJsonFile, Pack, PackStack, BrArchive, findGameData, vanillaPacks, worldPacks };
+module.exports = { parseJson, readJsonFile, Pack, PackStack, BrArchive, findGameData, vanillaPacks, worldPacks, outOfHandles };

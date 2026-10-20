@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1 - 2026-10-20
+
+- Fixed textures turning into the purple missing-texture pattern after reloading a world several times.
+
 ## 1.0.0 - 2026-10-10
 
 - First shared version.

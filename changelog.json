@@ -1,5 +1,12 @@
 [
   {
+    "version": "1.0.1",
+    "date": "2026-10-20",
+    "changes": [
+      "Fixed textures turning into the purple missing-texture pattern after reloading a world several times."
+    ]
+  },
+  {
     "version": "1.0.0",
     "date": "2026-10-10",
     "changes": [

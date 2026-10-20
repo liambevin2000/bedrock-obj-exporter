@@ -1,11 +1,9 @@
 {
-  "version": "1.0.0",
+  "version": "1.0.1",
   "minShell": "1.0.0",
-  "date": "2026-10-10",
+  "date": "2026-10-20",
   "notes": [
-    "First shared version.",
-    "Pick an area on the map, preview it in 3D, export to OBJ or Cinema 4D.",
-    "Updates itself from GitHub from now on."
+    "Fixed textures turning into the purple missing-texture pattern after reloading a world several times."
   ],
   "download": "https://github.com/liambevin2000/bedrock-obj-exporter/releases/latest",
   "files": [
@@ -26,8 +24,8 @@
     },
     {
       "path": "src/core/exporter.js",
-      "size": 6579,
-      "sha256": "dbf311a3621c0c967b81510f7f44005f4d177a8e5992fd1aa7c795e0b6fab211"
+      "size": 6597,
+      "sha256": "9182617e5809ff4dc8e47516e882a64566d202312fe4fda7a6cac6255d2c2e74"
     },
     {
       "path": "src/core/gallery.js",
@@ -81,8 +79,8 @@
     },
     {
       "path": "src/core/packs.js",
-      "size": 8931,
-      "sha256": "268594fbc3009ef41a736dad4856e36c83a53c92855ee94bf18658e53d545371"
+      "size": 9615,
+      "sha256": "5b76a21a634504e601e8c1889e8f1944088ed1039b05b3f0c69196237987dc70"
     },
     {
       "path": "src/core/quads.js",
@@ -91,8 +89,8 @@
     },
     {
       "path": "src/core/resources.js",
-      "size": 22297,
-      "sha256": "56f864cb9c8952a4c521e5d379764c32c6a5d38ac9ded421e1417ecbe96de3b9"
+      "size": 22581,
+      "sha256": "8a0a62a793f8df09d3de2d90dfb3ed52e2a6b0bcfe8c253b22fc92dff977dffd"
     },
     {
       "path": "src/core/simplify.js",
@@ -181,8 +179,8 @@
     },
     {
       "path": "changelog.json",
-      "size": 244,
-      "sha256": "c83a7c8aaead7c6686b1a674ace0d5b713a6b4658cd223c1e3ead731a5661cae"
+      "size": 436,
+      "sha256": "49ee78e6047dcd38db50bbaf96e1a2ae8177a92610597b6373747dcd5aaceb12"
     }
   ]
 }

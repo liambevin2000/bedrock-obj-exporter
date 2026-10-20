@@ -3,7 +3,7 @@
 // custom block definitions and custom geometry.
 const path = require('path');
 const { PNG } = require('pngjs');
-const { PackStack, Pack, parseJson, findGameData, vanillaPacks, worldPacks } = require('./packs');
+const { PackStack, Pack, parseJson, findGameData, vanillaPacks, worldPacks, outOfHandles } = require('./packs');
 const { comMojangRoots } = require('./world');
 const { readNbt } = require('./nbt');
 const { VANILLA_BIOMES } = require('./biomes');
@@ -180,7 +180,10 @@ class Resources {
         img.key = key;
         img.alpha = classifyAlpha(img);
       }
-    } catch (e) { img = null; }
+    } catch (e) {
+      if (outOfHandles(e)) return null; // temporary: try again next time instead of remembering "missing"
+      img = null;
+    }
     this.images.set(key, img);
     return img;
   }
@@ -254,6 +257,9 @@ class Resources {
     if (!m.simple) { try { m.simple = simplifyImage(m.image); } catch (e) { m.simple = m.image; } }
     return m.simple;
   }
+
+  // Lets go of every file the packs hold open. Called when the world is closed or reloaded.
+  close() { for (const p of this.stack.packs) p.close(); }
 
   // A material from a picture made here (sign text, a composed banner). key makes it reusable.
   customMaterial(key, name, image) {
