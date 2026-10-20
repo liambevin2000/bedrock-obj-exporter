@@ -93,7 +93,7 @@ label.check { display: flex; gap: 8px; align-items: baseline; }
 #progressBar { height: 100%; width: 0; background: var(--accent); transition: width .12s; }
 #status { font-size: 12px; color: var(--muted); min-height: 18px; user-select: text; word-break: break-word; }
 #status a { color: var(--accent); cursor: pointer; text-decoration: underline; }
-#status .warn { color: var(--warn); } #status .err { color: var(--danger); }
+#status .warn { color: var(--warn); } #status .err { color: var(--danger); } #status .ok { color: var(--accent); }
 #status details { margin-top: 6px; } #status summary { cursor: pointer; color: var(--warn); }
 #status ul { margin: 4px 0 0; padding-left: 16px; max-height: 140px; overflow-y: auto; }
 
@@ -105,6 +105,11 @@ label.check { display: flex; gap: 8px; align-items: baseline; }
 .card.wide { max-width: 560px; text-align: left; display: grid; gap: 12px; }
 .card.wide p { color: var(--muted); }
 .card.wide ol { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+#manual summary { cursor: pointer; color: var(--muted); }
+#manual > * + * { margin-top: 8px; }
+#autoNote.err { color: var(--danger); }
+#loaderInfo { display: grid; gap: 6px; padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 12px; color: var(--muted); }
+#loaderInfo[hidden] { display: none; }
 #cmds { width: 100%; height: 150px; resize: vertical; font: 12px/1.5 Consolas, monospace; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 8px; user-select: text; white-space: pre; }
 
 /* picked object */

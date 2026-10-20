@@ -106,6 +106,13 @@
         <button id="reload" class="ghost small" title="Read the world again after playing">Reload world</button>
       </div>
     </div>
+    <div id="loaderInfo" hidden>
+      <div id="loaderText"></div>
+      <div class="row">
+        <button id="loaderReload" class="ghost small" title="Read the world again after playing">Reload world</button>
+        <button id="loaderRemove" class="ghost small" title="Takes the helper add-on out of the world">Remove helper</button>
+      </div>
+    </div>
   </section>
 
   <section id="objPanel" hidden>
@@ -156,18 +163,28 @@
 <div id="modal" class="overlay" hidden>
   <div class="card wide">
     <h2>Get the missing chunks from Minecraft</h2>
-    <p>These chunks were never saved, so only the game can produce the real terrain. A ticking area makes it generate and save them.</p>
-    <ol>
-      <li>Open this world in Minecraft with cheats on, in the same dimension.</li>
-      <li>Run the <b>add</b> commands below in chat, one line at a time.</li>
-      <li>Wait about 15 seconds, then Save &amp; Quit.</li>
-      <li>Back here, click <b>Reload world</b>.</li>
-      <li>Next time you play, run the <b>remove</b> lines to tidy up.</li>
+    <p>These chunks were never saved, so only the game can make their real terrain. The exporter can put a small helper into this world that loads every one of them for you.</p>
+    <div class="row"><button id="loaderAdd" class="primary">Add the helper to this world</button></div>
+    <div id="autoNote" class="muted"></div>
+    <ol id="autoSteps" hidden>
+      <li>Open this world in Minecraft. If it is already open, Save &amp; Quit and open it again.</li>
+      <li>Stay where you are. Progress shows above the hotbar: <i>Exporter: loading missing chunks</i>.</li>
+      <li>When chat says <b>Done</b>, Save &amp; Quit, then click <b>Reload world</b> here.</li>
     </ol>
-    <textarea id="cmds" readonly spellcheck="false"></textarea>
-    <div id="cmdsNote" class="muted"></div>
+    <details id="manual">
+      <summary>Or do it by hand with commands</summary>
+      <ol>
+        <li>Open this world in Minecraft with cheats on, in the same dimension.</li>
+        <li>Run the <b>add</b> commands below in chat, one line at a time.</li>
+        <li>Wait about 15 seconds, then Save &amp; Quit.</li>
+        <li>Back here, click <b>Reload world</b>.</li>
+        <li>Next time you play, run the <b>remove</b> lines to tidy up.</li>
+      </ol>
+      <textarea id="cmds" readonly spellcheck="false"></textarea>
+      <div id="cmdsNote" class="muted"></div>
+      <div class="row"><button id="copyCmds" class="ghost">Copy add commands</button></div>
+    </details>
     <div class="row">
-      <button id="copyCmds" class="primary">Copy add commands</button>
       <button id="modalReload">Reload world</button>
       <button id="modalClose" class="ghost">Close</button>
     </div>

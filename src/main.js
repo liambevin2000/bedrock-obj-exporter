@@ -165,6 +165,12 @@ function setupIpc() {
     return { dir, pluginSource: src, installed, updated };
   });
 
+  // In-game helper that loads the chunks a world never saved (see core/chunkloader).
+  const loader = require('./core/chunkloader');
+  ipcMain.handle('loaderStatus', (e, worldDir) => ({ ...loader.canInstall(worldDir), installed: loader.status(worldDir) }));
+  ipcMain.handle('loaderInstall', (e, a) => loader.install(a.worldDir, a.dim, a.chunks));
+  ipcMain.handle('loaderRemove', (e, worldDir) => loader.remove(worldDir));
+
   // Development hooks used by the automated self-test.
   ipcMain.handle('auto', () => {
     const a = process.argv.find((x) => x.startsWith('--auto='));

@@ -98,6 +98,7 @@ async function openWorld(w, keepView) {
   setBusy(null);
   setMode('map');
   draw();
+  refreshLoader().catch(() => { $('loaderInfo').hidden = true; });
 }
 
 // Worlds are often several far-apart islands of chunks. Frame the one the player is in,
@@ -573,16 +574,68 @@ function tickingCommands() {
   return { add, remove, left: all.length - areas.length };
 }
 
-function showGapDialog() {
+async function showGapDialog() {
   const c = tickingCommands();
   $('cmds').value = c.add.join('\n') + '\n\n' + c.remove.join('\n');
   $('cmdsNote').textContent = c.left > 0
     ? `A world can hold 10 ticking areas, so this covers part of the selection. Reload afterwards and open this again for the remaining ${c.left} area${c.left > 1 ? 's' : ''}.`
     : 'If a command says the limit is reached, remove old ticking areas first with /tickingarea remove_all.';
-  $('modal').hidden = false;
   $('modal').dataset.add = c.add.join('\n');
+
+  // the one-click helper
+  const { missing } = missingChunks();
+  const st = await api.invoke('loaderStatus', state.world.dir);
+  const tiles = new Set(missing.map(([cx, cz]) => Math.floor(cx / 10) + ',' + Math.floor(cz / 10))).size;
+  const secs = Math.ceil(tiles / 4) * 4 + 5;
+  const note = $('autoNote');
+  note.classList.toggle('err', !st.ok);
+  $('autoSteps').hidden = true;
+  $('loaderAdd').disabled = !st.ok;
+  $('loaderAdd').textContent = st.installed ? 'Update the helper with this selection' : 'Add the helper to this world';
+  note.textContent = st.ok
+    ? `${missing.length} chunk${missing.length === 1 ? '' : 's'}, usually done in ${secs < 60 ? 'under a minute' : `about ${Math.ceil(secs / 60)} minutes`}. Like any add-on it turns off achievements for this world. The exporter takes it out again once the chunks are in.`
+    : st.reason;
+  $('manual').open = !st.ok;
+  $('modal').hidden = false;
 }
 $('gapsGame').onclick = showGapDialog;
+$('loaderAdd').onclick = async () => {
+  const { missing } = missingChunks();
+  try {
+    const r = await api.invoke('loaderInstall', { worldDir: state.world.dir, dim: state.dim, chunks: missing });
+    $('autoNote').classList.remove('err');
+    $('autoNote').textContent = `Added. It will load ${r.chunks} chunk${r.chunks === 1 ? '' : 's'} next time this world opens in Minecraft:`;
+    $('autoSteps').hidden = false;
+    $('loaderAdd').disabled = true;
+    refreshLoader();
+  } catch (e) {
+    $('autoNote').classList.add('err');
+    $('autoNote').textContent = 'Could not add the helper: ' + e.message.replace(/^Error invoking remote method '[^']+': (Error: )?/, '');
+  }
+};
+
+// Shows how far the helper has got, and takes it out of the world once every chunk is in.
+async function refreshLoader() {
+  const box = $('loaderInfo');
+  const st = state.world && state.index ? await api.invoke('loaderStatus', state.world.dir) : null;
+  const job = st && st.installed;
+  if (!job) { box.hidden = true; return; }
+  const idx = state.index[job.dim];
+  const got = idx ? job.chunks.filter(([cx, cz]) => idx.chunkSet.has(cx + ',' + cz)).length : 0;
+  if (got === job.chunks.length) {
+    await api.invoke('loaderRemove', state.world.dir);
+    box.hidden = true;
+    setStatus(`<span class="ok">All ${got} chunks came through from the game. The helper has been taken out of the world again.</span>`);
+    return;
+  }
+  const dimName = ['Overworld', 'Nether', 'End'][job.dim];
+  $('loaderText').textContent = got
+    ? `The chunk helper is in this world: ${got} of ${job.chunks.length} chunks are in so far${job.dim !== state.dim ? ` (${dimName})` : ''}. Finish in Minecraft, Save & Quit, then reload.`
+    : `The chunk helper is in this world, waiting for ${job.chunks.length} chunks${job.dim !== state.dim ? ` in the ${dimName}` : ''}. Open the world in Minecraft, wait for "Done", Save & Quit, then reload.`;
+  box.hidden = false;
+}
+$('loaderReload').onclick = () => reopen();
+$('loaderRemove').onclick = async () => { await api.invoke('loaderRemove', state.world.dir); refreshLoader(); };
 $('modalClose').onclick = () => { $('modal').hidden = true; };
 $('copyCmds').onclick = async () => {
   const text = $('modal').dataset.add;
@@ -1101,6 +1154,13 @@ async function runAuto(a) {
     $('locatePanel').hidden = true;
   }
   if (a.locate) clearLocation();
+  if (a.gapDialog) { // photograph the "get them from the game" dialog for the current selection
+    await showGapDialog();
+    await new Promise((r) => setTimeout(r, 200));
+    console.log('auto: gap dialog', $('autoNote').textContent);
+    await api.invoke('shot', a.gapDialog);
+    $('modal').hidden = true;
+  }
   if (a.mouse) {
     // real input events through the window: scroll to zoom, then drag a selection
     const r = canvas.getBoundingClientRect(), cx = Math.round(r.left + r.width / 2), cy = Math.round(r.top + r.height / 2);

@@ -3,7 +3,8 @@
   "minShell": "1.0.0",
   "date": "2026-10-20",
   "notes": [
-    "Fixed textures turning into the purple missing-texture pattern after reloading a world several times."
+    "Fixed textures turning into the purple missing-texture pattern after reloading a world several times.",
+    "Missing chunks: one click adds a helper to the world that loads them all next time you open it in Minecraft."
   ],
   "download": "https://github.com/liambevin2000/bedrock-obj-exporter/releases/latest",
   "files": [
@@ -16,6 +17,11 @@
       "path": "src/core/c4dwriter.js",
       "size": 4743,
       "sha256": "755a8f81326796c82a4feecb8554045c880ff2d0a6cfaa990f1c7816260e4eba"
+    },
+    {
+      "path": "src/core/chunkloader.js",
+      "size": 10102,
+      "sha256": "e424210836cb5c368c964789d14501497337fc970ed4e5736ced420d9645afe2"
     },
     {
       "path": "src/core/entities.js",
@@ -124,8 +130,8 @@
     },
     {
       "path": "src/main.js",
-      "size": 10139,
-      "sha256": "6782ffd0bf9bc04db7087777cee6349e1a4a3662d1432d569d571a84f3f251bc"
+      "size": 10565,
+      "sha256": "c6857015205b45620c7a6deb15a07837b657e8790cf7dc72698ae3f85234a9f1"
     },
     {
       "path": "src/preload.js",
@@ -134,13 +140,13 @@
     },
     {
       "path": "src/ui/app.js",
-      "size": 67236,
-      "sha256": "4ec34bb36c4064533c72564870a5e59251cf58eefbfe1ce54f9bdfccc57e4b31"
+      "size": 70594,
+      "sha256": "29af5a8015fd49c3426d8cb38136549ff68f05901075cdd2cf3687b2cfc1408c"
     },
     {
       "path": "src/ui/index.html",
-      "size": 9417,
-      "sha256": "49f14f8a5130e9901628429aeb7d57cf4841213077b2f647569bb78eb2331847"
+      "size": 10452,
+      "sha256": "fbd20b8b56f950a697ce766d70feb6651ab27f7232cf04e066e3e7abb87f35dd"
     },
     {
       "path": "src/ui/pov.js",
@@ -154,8 +160,8 @@
     },
     {
       "path": "src/ui/style.css",
-      "size": 11280,
-      "sha256": "066eb1e8168f903dbe6cc188c89fa08555c3bdf428e7435ac465652ca20b9662"
+      "size": 11641,
+      "sha256": "347f0429ff3f3088d374382179aee46728004d967118dabc1d1922629d1f039b"
     },
     {
       "path": "src/ui/vendor/OrbitControls.js",
@@ -179,8 +185,8 @@
     },
     {
       "path": "changelog.json",
-      "size": 436,
-      "sha256": "49ee78e6047dcd38db50bbaf96e1a2ae8177a92610597b6373747dcd5aaceb12"
+      "size": 554,
+      "sha256": "9f8cab5062c79aaf6b4d4b90a43c5957ea5c7220f658711faa31479040f90b71"
     }
   ]
 }
