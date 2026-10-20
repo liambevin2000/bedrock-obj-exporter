@@ -631,7 +631,7 @@ async function refreshLoader() {
   const dimName = ['Overworld', 'Nether', 'End'][job.dim];
   $('loaderText').textContent = got
     ? `The chunk helper is in this world: ${got} of ${job.chunks.length} chunks are in so far${job.dim !== state.dim ? ` (${dimName})` : ''}. Finish in Minecraft, Save & Quit, then reload.`
-    : `The chunk helper is in this world, waiting for ${job.chunks.length} chunks${job.dim !== state.dim ? ` in the ${dimName}` : ''}. Open the world in Minecraft, wait for "Done", Save & Quit, then reload.`;
+    : `The chunk helper is in this world, waiting for ${job.chunks.length} chunks${job.dim !== state.dim ? ` in the ${dimName}` : ''}. Restart Minecraft if it is running, open the world, wait for "Done", Save & Quit, then reload.`;
   box.hidden = false;
 }
 $('loaderReload').onclick = () => reopen();

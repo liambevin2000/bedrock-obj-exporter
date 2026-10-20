@@ -140,13 +140,13 @@
     },
     {
       "path": "src/ui/app.js",
-      "size": 70594,
-      "sha256": "29af5a8015fd49c3426d8cb38136549ff68f05901075cdd2cf3687b2cfc1408c"
+      "size": 70617,
+      "sha256": "5b44af024c916ee4825e88d3268895f3251200db39799ae661df11304c3e6f11"
     },
     {
       "path": "src/ui/index.html",
-      "size": 10452,
-      "sha256": "fbd20b8b56f950a697ce766d70feb6651ab27f7232cf04e066e3e7abb87f35dd"
+      "size": 10492,
+      "sha256": "8fcf9ce8fd9cbd04ec9a959dc1fddc3ce051b8bc64676ea425017547ff5956cb"
     },
     {
       "path": "src/ui/pov.js",
