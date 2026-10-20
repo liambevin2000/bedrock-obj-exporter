@@ -618,8 +618,9 @@ $('loaderAdd').onclick = async () => {
 async function refreshLoader() {
   const box = $('loaderInfo');
   const st = state.world && state.index ? await api.invoke('loaderStatus', state.world.dir) : null;
-  const job = st && st.installed;
+  const job = state.loaderJob = st && st.installed;
   if (!job) { box.hidden = true; return; }
+  watchGame();
   const idx = state.index[job.dim];
   const got = idx ? job.chunks.filter(([cx, cz]) => idx.chunkSet.has(cx + ',' + cz)).length : 0;
   if (got === job.chunks.length) {
@@ -634,6 +635,22 @@ async function refreshLoader() {
     : `The chunk helper is in this world, waiting for ${job.chunks.length} chunks${job.dim !== state.dim ? ` in the ${dimName}` : ''}. Restart Minecraft if it is running, open the world, wait for "Done", Save & Quit, then reload.`;
   box.hidden = false;
 }
+// Minecraft only looks for new add-ons when it starts, so a game that was already running when the
+// helper was added never runs it. Watch for that while the helper is waiting.
+let gameTimer = null;
+async function checkGame() {
+  const job = state.loaderJob;
+  const waiting = job && job.installedAt && (!$('loaderInfo').hidden || (!$('modal').hidden && !$('autoSteps').hidden));
+  let text = '', good = false;
+  if (!waiting) { clearInterval(gameTimer); gameTimer = null; }
+  else {
+    const started = await api.invoke('minecraftStartedAt');
+    if (started && started < job.installedAt) text = 'Minecraft is still running from before the helper was added, so it will not see it. Close Minecraft completely and start it again.';
+    else if (started) { text = 'Minecraft was started after the helper was added: open the world and it begins by itself.'; good = true; }
+  }
+  for (const id of ['mcWarn', 'loaderWarn']) { const el = $(id); el.textContent = text; el.classList.toggle('good', good); el.hidden = !text; }
+}
+function watchGame() { checkGame(); if (!gameTimer) gameTimer = setInterval(checkGame, 4000); }
 $('loaderReload').onclick = () => reopen();
 $('loaderRemove').onclick = async () => { await api.invoke('loaderRemove', state.world.dir); refreshLoader(); };
 $('modalClose').onclick = () => { $('modal').hidden = true; };

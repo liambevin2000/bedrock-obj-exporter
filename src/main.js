@@ -158,6 +158,7 @@ function setupIpc() {
   ipcMain.handle('loaderStatus', (e, worldDir) => ({ ...loader.canInstall(worldDir), installed: loader.status(worldDir) }));
   ipcMain.handle('loaderInstall', (e, a) => loader.install(a.worldDir, a.dim, a.chunks));
   ipcMain.handle('loaderRemove', (e, worldDir) => loader.remove(worldDir));
+  ipcMain.handle('minecraftStartedAt', () => loader.minecraftStartedAt());
 
   // Development hooks used by the automated self-test.
   ipcMain.handle('auto', () => {

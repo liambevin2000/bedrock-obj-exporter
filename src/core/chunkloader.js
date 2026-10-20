@@ -49,7 +49,8 @@ function install(worldDir, dim, chunks) {
   if (!chunks.length) throw new Error('No missing chunks in the selection.');
   const dir = packDir(worldDir);
   const prev = status(worldDir);
-  const build = prev ? prev.build + 1 : 1; // a new version each time, so the game never runs a cached copy
+  // a higher version every time, also after the helper was removed, so the game never runs a cached copy
+  const build = Math.max(prev ? prev.build + 1 : 1, Math.floor(Date.now() / 1000) - 1735689600); // seconds since 2025
   const version = [1, 0, build];
   const job = { id: `${Date.now().toString(36)}-${build}`, dim: DIM_IDS[dim] || 'overworld', total: chunks.length, batches: batches(chunks) };
 
@@ -66,7 +67,7 @@ function install(worldDir, dim, chunks) {
   }, null, 2));
   fs.writeFileSync(path.join(dir, 'scripts', 'main.js'), script(job));
   const createdList = prev ? prev.createdList : !fs.existsSync(listFile(worldDir));
-  fs.writeFileSync(path.join(dir, 'job.json'), JSON.stringify({ build, dim, chunks, createdList }));
+  fs.writeFileSync(path.join(dir, 'job.json'), JSON.stringify({ build, dim, chunks, createdList, installedAt: Date.now() }));
 
   let list = readList(worldDir);
   if (list === null) {
@@ -198,4 +199,17 @@ function start() {
 `;
 }
 
-module.exports = { canInstall, install, status, remove, batches, PACK_UUID };
+// Minecraft only looks for new add-ons when it starts, so a game that was already running when the
+// helper was added will never run it. Returns null (not running) or the start time in ms.
+function minecraftStartedAt() {
+  return new Promise((resolve) => {
+    if (process.platform !== 'win32') { resolve(null); return; }
+    const cmd = "$p = Get-Process -Name 'Minecraft.Windows*' -ErrorAction SilentlyContinue | Sort-Object StartTime | Select-Object -First 1; if ($p) { [DateTimeOffset]::new($p.StartTime).ToUnixTimeMilliseconds() }";
+    require('child_process').execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', cmd], { windowsHide: true, timeout: 8000 }, (err, out) => {
+      const t = Number(String(out || '').trim());
+      resolve(!err && t > 0 ? t : null);
+    });
+  });
+}
+
+module.exports = { canInstall, install, status, remove, batches, minecraftStartedAt, PACK_UUID };

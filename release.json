@@ -1,9 +1,9 @@
 {
-  "version": "1.0.2",
+  "version": "1.0.3",
   "minShell": "1.0.0",
   "date": "2026-10-20",
   "notes": [
-    "The Cinema 4D plugin now goes in its own folder, and the extra loose copy that could hide other plugins is removed."
+    "Chunk helper: warns when Minecraft was already running before the helper was added and needs a restart to see it."
   ],
   "download": "https://github.com/liambevin2000/bedrock-obj-exporter/releases/latest",
   "files": [
@@ -24,8 +24,8 @@
     },
     {
       "path": "src/core/chunkloader.js",
-      "size": 10102,
-      "sha256": "e424210836cb5c368c964789d14501497337fc970ed4e5736ced420d9645afe2"
+      "size": 11074,
+      "sha256": "591b4464e0b8c6b779eba50bec542c885614374d40983e9d834289a2eaa78673"
     },
     {
       "path": "src/core/entities.js",
@@ -134,8 +134,8 @@
     },
     {
       "path": "src/main.js",
-      "size": 10044,
-      "sha256": "792b8141f668eeb818a374237894218be142614bdfadb78df9e3c1ea20338914"
+      "size": 10119,
+      "sha256": "45c937b8e59e15eb8d829829185852f1040f4568791e195fdf9d39392929db28"
     },
     {
       "path": "src/preload.js",
@@ -144,13 +144,13 @@
     },
     {
       "path": "src/ui/app.js",
-      "size": 70617,
-      "sha256": "5b44af024c916ee4825e88d3268895f3251200db39799ae661df11304c3e6f11"
+      "size": 71768,
+      "sha256": "65c1292c505a6cf2ed61152d4604ac96dd51b5400334836211b341462e48512e"
     },
     {
       "path": "src/ui/index.html",
-      "size": 10492,
-      "sha256": "8fcf9ce8fd9cbd04ec9a959dc1fddc3ce051b8bc64676ea425017547ff5956cb"
+      "size": 10598,
+      "sha256": "e4c050788d6851b5e6b6e3074e53cd45a3f8809cc59f94be89e9723e19ece618"
     },
     {
       "path": "src/ui/pov.js",
@@ -164,8 +164,8 @@
     },
     {
       "path": "src/ui/style.css",
-      "size": 11641,
-      "sha256": "347f0429ff3f3088d374382179aee46728004d967118dabc1d1922629d1f039b"
+      "size": 11926,
+      "sha256": "c0b084bc99800d08053b45e7db65ec045d72e3ff4ef9191d9ca40603f210bc1d"
     },
     {
       "path": "src/ui/vendor/OrbitControls.js",
@@ -189,8 +189,8 @@
     },
     {
       "path": "changelog.json",
-      "size": 760,
-      "sha256": "7b41eff633491cb8d45d7dd3c32e56c5945adc6115b5db8d4c7c4477d15773bc"
+      "size": 964,
+      "sha256": "e83eb2d79fd872e2459e4d2971141c09390c82e4f64bb389c7882305d79dd42a"
     }
   ]
 }
