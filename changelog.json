@@ -3,7 +3,8 @@
     "version": "1.0.3",
     "date": "2026-10-20",
     "changes": [
-      "Chunk helper: warns when Minecraft was already running before the helper was added and needs a restart to see it."
+      "Chunk helper: warns when Minecraft was already running before the helper was added and needs a restart to see it.",
+      "Cinema 4D plugin: shows an icon.png placed next to it in its plugin folder."
     ]
   },
   {

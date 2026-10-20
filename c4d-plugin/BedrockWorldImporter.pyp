@@ -264,11 +264,34 @@ class ImportBedrockWorldCommand(c4d.plugins.CommandData):
 
 
 if __name__ == '__main__':
+    icon = None
+
+    try:
+        icon_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            'icon.png'
+        )
+
+        if os.path.exists(icon_path):
+            icon = c4d.bitmaps.BaseBitmap()
+            result = icon.InitWith(icon_path)
+
+            # InitWith() can return either a result code or a tuple
+            # depending on the Cinema 4D Python API version.
+            if isinstance(result, tuple):
+                result = result[0]
+
+            if result != c4d.IMAGERESULT_OK:
+                icon = None
+
+    except Exception:
+        icon = None
+
     c4d.plugins.RegisterCommandPlugin(
         PLUGIN_ID,
         'Import Bedrock World',
         0,
-        None,
+        icon,
         'Imports the area last sent from Bedrock OBJ Exporter',
         ImportBedrockWorldCommand()
     )

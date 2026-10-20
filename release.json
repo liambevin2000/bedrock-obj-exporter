@@ -3,7 +3,8 @@
   "minShell": "1.0.0",
   "date": "2026-10-20",
   "notes": [
-    "Chunk helper: warns when Minecraft was already running before the helper was added and needs a restart to see it."
+    "Chunk helper: warns when Minecraft was already running before the helper was added and needs a restart to see it.",
+    "Cinema 4D plugin: shows an icon.png placed next to it in its plugin folder."
   ],
   "download": "https://github.com/liambevin2000/bedrock-obj-exporter/releases/latest",
   "files": [
@@ -184,13 +185,13 @@
     },
     {
       "path": "c4d-plugin/BedrockWorldImporter.pyp",
-      "size": 10597,
-      "sha256": "6e14dd98a7d89e31ee5cc3d5c8e7bda89b0ddf3ff6f0064bf7ae4be88a061317"
+      "size": 11200,
+      "sha256": "9e3d51d30bcb6d1eb63bdd56d7bb3b76720bf99863559ff1ace96a3e94907de8"
     },
     {
       "path": "changelog.json",
-      "size": 964,
-      "sha256": "e83eb2d79fd872e2459e4d2971141c09390c82e4f64bb389c7882305d79dd42a"
+      "size": 1049,
+      "sha256": "9fbc3df9680bef65e428c165d69a21ec9e43d9cac488b594b784d2f01d2a807e"
     }
   ]
 }
