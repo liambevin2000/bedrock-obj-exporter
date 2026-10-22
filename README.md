@@ -1,6 +1,7 @@
 # Bedrock OBJ Exporter
 
-Pick an area of a Minecraft Bedrock world on a top-down map, check it in 3D, export it as OBJ + MTL + textures.
+Pick an area of a Minecraft world on a top-down map, check it in 3D, export it as OBJ + MTL + textures or
+straight to Cinema 4D. Works with Bedrock and Java Edition worlds.
 
 ## Run
 
@@ -8,7 +9,7 @@ Double-click `Bedrock OBJ Exporter.bat` (or `npm start`). First run needs `npm i
 
 ## Use
 
-1. Pick a world on the left (or drop a world folder / `.mcworld` on the window).
+1. Choose Bedrock or Java at the top of the list, then pick a world (or drop a world folder / `.mcworld` on the window).
 2. Drag on the map to select. Drag the edges to adjust; Shift snaps to chunks. Right-drag pans, scroll zooms.
 3. Bottom/Top Y are filled from the surface inside the selection. `Full height` takes everything.
 4. `Preview in 3D` shows exactly the geometry that will be written.
@@ -51,6 +52,22 @@ use one gentler fixed distance. Animated textures share one set of tones across 
 `node tools/simplify-sheet.js out.png` writes a before/after sheet.
 
 `Map top Y` hides everything above a height on the map (Nether roof, caves, interiors).
+
+
+## Java Edition
+
+- Worlds are listed from the official launcher and from Prism, MultiMC, Modrinth and CurseForge instances; the
+  second line says which instance a world belongs to. Any other world folder opens with `Open folder…`.
+- Textures and block shapes come from the game jar of the world's version (the same version, else the closest
+  newer one installed). Mods of the world's instance are read too, so modded blocks, textures and biome colours
+  show up; the world's `resources.zip` and data packs are applied. Extra resource packs (zip or folder) can be added.
+- Worlds from 1.13 on are supported, including the 26.x storage layout. Chunks that are only partly generated
+  count as missing, like unsaved chunks on Bedrock; `Get them from the game…` gives `/forceload` commands.
+- Blocks the game draws in code are rebuilt: chests, beds, signs with their text, banners with their patterns,
+  heads, shulker boxes, decorated pots with sherds, conduits and bells. Paintings and item frames (with their
+  item) are drawn. Copper golem statues and armor stands are not drawn yet, and mobs are always left out.
+- `node tools/java-gallery-export.js out.obj [version]` exports every block of a game version as a test;
+  `node tools/java-world-check.js` exports an area around the player of every Java world found and lists problems.
 
 ## Textures
 

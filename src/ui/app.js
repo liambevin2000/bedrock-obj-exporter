@@ -4,9 +4,13 @@ const api = window.api;
 const $ = (id) => document.getElementById(id);
 const TILE = 128; // blocks per map tile (8 chunks)
 const DIM_RANGE = [[-64, 319], [0, 127], [0, 255]];
+// Build height per dimension of the open world (Java worlds from before 1.18 start at 0).
+const dimRange = (d) => (state.dimRange || DIM_RANGE)[d];
+const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* no storage */ } } };
 
 const state = {
-  worlds: [], world: null, dim: 0, ceiling: null,
+  worlds: [], javaWorlds: null, edition: store.get('edition') === 'java' ? 'java' : 'bedrock', dimRange: null,
+  world: null, dim: 0, ceiling: null,
   view: { x: 0, z: 0, scale: 2 },       // world coords at canvas centre, pixels per block
   sel: null,                             // { x0, z0, x1, z1, y0, y1 } inclusive blocks
   index: null,                           // per-dimension chunk index from the scan
@@ -26,25 +30,54 @@ function fmtSize(b) { return b > 1 << 30 ? (b / (1 << 30)).toFixed(1) + ' GB' : 
 function fmtDate(ms) { return ms ? new Date(ms).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : ''; }
 function fileUrl(p) { return 'file:///' + p.replace(/\\/g, '/').split('/').map(encodeURIComponent).join('/').replace(/%3A/g, ':'); }
 
+const worldList = () => (state.edition === 'java' ? state.javaWorlds || [] : state.worlds);
+
 function renderWorlds() {
   const q = $('worldSearch').value.trim().toLowerCase();
   const list = $('worldList');
   list.textContent = '';
-  for (const w of state.worlds) {
-    if (q && !w.name.toLowerCase().includes(q)) continue;
+  for (const w of worldList()) {
+    if (q && !(w.name + ' ' + (w.instance || '')).toLowerCase().includes(q)) continue;
     const el = document.createElement('div');
     el.className = 'world' + (state.world && state.world.dir === w.dir ? ' on' : '');
     const icon = w.icon ? Object.assign(document.createElement('img'), { src: fileUrl(w.icon), loading: 'lazy' }) : Object.assign(document.createElement('div'), { className: 'noicon' });
     const text = document.createElement('div');
     text.innerHTML = '<div class="name"></div><div class="meta"></div>';
     text.children[0].textContent = w.name;
-    text.children[1].textContent = `${fmtDate(w.modified)} · ${fmtSize(w.size)}`;
+    text.children[1].textContent = `${fmtDate(w.modified)} · ${fmtSize(w.size)}` + (w.version ? ` · ${w.version}` : '');
+    if (w.edition === 'java') {
+      // many Java worlds are called "New World": say which launcher instance each comes from
+      const sub = document.createElement('div');
+      sub.className = 'meta sub';
+      sub.textContent = w.instance || 'Minecraft Launcher';
+      sub.title = w.dir;
+      text.append(sub);
+    }
     el.append(icon, text);
     el.onclick = () => openWorld(w);
     list.append(el);
   }
-  if (!list.children.length) list.innerHTML = '<div class="muted" style="padding:12px">No worlds found.</div>';
+  if (!list.children.length) {
+    const msg = state.edition === 'java'
+      ? (state.javaWorlds ? 'No Java worlds found. Use Open folder… to pick a world folder.' : 'Looking for Java worlds…')
+      : 'No worlds found.';
+    list.innerHTML = `<div class="muted" style="padding:12px">${msg}</div>`;
+  }
 }
+
+// Bedrock or Java: which worlds the list shows. Java worlds are looked up the first time.
+async function setEdition(e) {
+  state.edition = e === 'java' ? 'java' : 'bedrock';
+  store.set('edition', state.edition);
+  for (const b of $('editionSeg').children) b.classList.toggle('on', b.dataset.edition === state.edition);
+  $('openWorldFile').hidden = state.edition === 'java';
+  renderWorlds();
+  if (state.edition === 'java' && !state.javaWorlds) {
+    try { state.javaWorlds = await api.invoke('javaWorlds'); } catch (err) { state.javaWorlds = []; }
+    renderWorlds();
+  }
+}
+for (const b of $('editionSeg').children) b.onclick = () => setEdition(b.dataset.edition);
 
 function setBusy(text) {
   state.busy = !!text;
@@ -55,7 +88,10 @@ function setBusy(text) {
 
 async function openWorld(w, keepView) {
   if (state.busy) return;
-  if (!state.worlds.find((x) => x.dir === w.dir)) state.worlds.unshift(w);
+  const edition = w.edition === 'java' || String(w.dir).startsWith('java-gallery:') ? 'java' : 'bedrock';
+  const list = edition === 'java' ? (state.javaWorlds || (state.javaWorlds = [])) : state.worlds;
+  if (!list.find((x) => x.dir === w.dir)) list.unshift(w);
+  if (edition !== state.edition) setEdition(edition); // e.g. a Java world folder dropped while Bedrock is listed
   if (!keepView) { state.extraPacks = state.world && state.world.dir === w.dir ? state.extraPacks : []; }
   state.world = w; state.index = null; state.previewKey = null; state.voxelKey = null; state.reframe = true;
   previewSeq++;
@@ -76,6 +112,11 @@ async function openWorld(w, keepView) {
     setBusy('Indexing chunks…');
     const scan = await api.invoke('scan');
     state.player = scan.player;
+    state.openEdition = scan.edition || 'bedrock';
+    // build height of each dimension: Bedrock's nether is 128 high, Java's 256; old Java worlds start at 0
+    state.dimRange = state.openEdition === 'java'
+      ? (scan.minY || [-64, 0, 0]).map((y, d) => [y, d === 0 && y < 0 ? 319 : 255])
+      : DIM_RANGE;
     state.index = scan.dims.map((d) => {
       const tiles = new Set();
       let minSy = 127, maxSy = -128;
@@ -161,6 +202,14 @@ function renderPacks() {
   // highest priority first, like the in-game list
   [...p.extraPacks].reverse().forEach((x) => add('added', x.name, '', () => { state.extraPacks = state.extraPacks.filter((d) => d !== x.dir); reopen(); }, x.dir));
   [...p.resourcePacks].reverse().forEach((x) => add('world', x.name, '', null, x.dir));
+  if (p.edition === 'java') {
+    if (p.mods) add('mods', `${p.mods} mod${p.mods === 1 ? '' : 's'} from this world's instance`, '', null, 'Blocks, textures and biome colours from the mods in the instance this world belongs to');
+    if (p.vanilla) {
+      const note = p.worldVersion && p.gameVersion !== p.worldVersion ? ` (world is ${p.worldVersion})` : '';
+      add('base', `Minecraft ${p.gameVersion}${note}`, '', null, p.gameData);
+    } else add('missing', 'Minecraft Java not found — play the world once with the official launcher, or add a resource pack', 'warn');
+    return;
+  }
   for (const id of p.missing) add('missing', id, 'warn', null, 'This pack is listed by the world but was not found on this PC (Marketplace packs are encrypted). Add it manually if you have the files.');
   if (p.vanilla) add('base', 'Vanilla (from your Minecraft install)', '', null, p.gameData);
   else add('missing', 'Vanilla textures not found — install Minecraft or add a vanilla pack', 'warn');
@@ -393,7 +442,7 @@ function surfaceRange(sel) {
 function setSelection(sel) {
   const s = { x0: Math.min(sel.x0, sel.x1), x1: Math.max(sel.x0, sel.x1), z0: Math.min(sel.z0, sel.z1), z1: Math.max(sel.z0, sel.z1), y0: sel.y0, y1: sel.y1 };
   if (s.y0 === undefined || s.y1 === undefined || Number.isNaN(s.y0) || Number.isNaN(s.y1)) {
-    const r = surfaceRange(s), dr = DIM_RANGE[state.dim];
+    const r = surfaceRange(s), dr = dimRange(state.dim);
     if (r) { s.y0 = Math.max(dr[0], r[0] - 4); s.y1 = Math.min(dr[1], r[1]); }
     else { s.y0 = dr[0]; s.y1 = dr[1]; }
     if (state.ceiling !== null) s.y1 = Math.min(s.y1, state.ceiling);
@@ -568,6 +617,11 @@ function tickingCommands() {
     tiles.set(k, t);
   }
   const all = [...tiles.values()];
+  if (state.openEdition === 'java') {
+    // Java: force-loaded chunks are generated and saved; there is no limit on how many
+    const add = all.map((t) => `/forceload add ${t.x0 * 16} ${t.z0 * 16} ${t.x1 * 16 + 15} ${t.z1 * 16 + 15}`);
+    return { add, remove: ['/forceload remove all'], left: 0 };
+  }
   const areas = all.slice(0, 10);
   const add = areas.map((t, i) => `/tickingarea add ${t.x0 * 16} 0 ${t.z0 * 16} ${t.x1 * 16 + 15} 0 ${t.z1 * 16 + 15} boefill${i + 1}`);
   const remove = areas.map((t, i) => `/tickingarea remove boefill${i + 1}`);
@@ -582,7 +636,17 @@ async function showGapDialog() {
     : 'If a command says the limit is reached, remove old ticking areas first with /tickingarea remove_all.';
   $('modal').dataset.add = c.add.join('\n');
 
-  // the one-click helper
+  // the one-click helper (Bedrock only: it is a Bedrock script add-on)
+  const java = state.openEdition === 'java';
+  $('loaderAdd').hidden = java;
+  if (java) {
+    $('autoNote').classList.remove('err');
+    $('autoNote').textContent = 'For Java worlds, load them with the commands below (they need cheats on).';
+    $('autoSteps').hidden = true;
+    $('manual').open = true;
+    $('modal').hidden = false;
+    return;
+  }
   const { missing } = missingChunks();
   const st = await api.invoke('loaderStatus', state.world.dir);
   const tiles = new Set(missing.map(([cx, cz]) => Math.floor(cx / 10) + ',' + Math.floor(cz / 10))).size;
@@ -689,7 +753,7 @@ $('fitSurface').onclick = () => { if (state.sel) setSelection({ ...state.sel, y0
 $('fitAll').onclick = () => {
   if (!state.sel || !state.index) return;
   const idx = state.index[state.dim];
-  setSelection({ ...state.sel, y0: idx.count ? idx.minY : DIM_RANGE[state.dim][0], y1: idx.count ? idx.maxY : DIM_RANGE[state.dim][1] });
+  setSelection({ ...state.sel, y0: idx.count ? idx.minY : dimRange(state.dim)[0], y1: idx.count ? idx.maxY : dimRange(state.dim)[1] });
 };
 
 // ---- top bar ----------------------------------------------------------------------------------
@@ -989,7 +1053,7 @@ async function buildPreview() {
   if (seq !== previewSeq) return;
   if (state.reframe) { preview.origin = null; preview.setVoxels(null); state.voxelKey = null; state.reframe = false; }
   const reframed = !preview.origin;
-  preview.setBounds(state.sel, { y0: DIM_RANGE[state.dim][0], y1: DIM_RANGE[state.dim][1] });
+  preview.setBounds(state.sel, { y0: dimRange(state.dim)[0], y1: dimRange(state.dim)[1] });
   if (reframed && state.obj) preview.setObject(state.obj); // the highlight is positioned relative to the origin
   state.previewKey = key;
   jobRunning = 'preview'; updateButtons();
@@ -1108,8 +1172,8 @@ $('ents').onchange = () => { if (state.mode === 'preview') buildPreview(); };
 // textures are cached by the 3D view, so they have to be sent again in their other form
 $('simplify').onchange = () => { if (preview) preview.dropMaterials(); if (state.mode === 'preview') buildPreview(); };
 $('exportBtn').onclick = () => startExport();
-$('addPack').onclick = async () => addPacks(await api.invoke('pickPack'));
-$('addPackFolder').onclick = async () => addPacks(await api.invoke('pickPackFolder'));
+$('addPack').onclick = async () => addPacks(await api.invoke('pickPack', { edition: state.openEdition }));
+$('addPackFolder').onclick = async () => addPacks(await api.invoke('pickPackFolder', { edition: state.openEdition }));
 $('openWorldFile').onclick = async () => { const w = await api.invoke('pickWorld'); if (w) openWorld(w); };
 $('openWorldFolder').onclick = async () => { const w = await api.invoke('pickWorldFolder'); if (w) openWorld(w); else if (w === null) return; };
 $('worldSearch').oninput = renderWorlds;
@@ -1124,7 +1188,7 @@ window.addEventListener('drop', async (e) => {
   e.preventDefault(); dragDepth = 0; document.body.classList.remove('dropping');
   for (const f of e.dataTransfer.files) {
     try {
-      const r = await api.invoke('resolveDrop', api.pathForFile(f));
+      const r = await api.invoke('resolveDrop', { path: api.pathForFile(f), edition: state.world ? state.openEdition : state.edition });
       if (r.world) await openWorld(r.world);
       else if (r.packs && r.packs.length) await addPacks(r.packs);
       else setStatus('<span class="warn">That does not look like a world or a resource pack.</span>');
@@ -1148,8 +1212,10 @@ async function runAuto(a) {
     console.log('auto: update', JSON.stringify({ running: info.version, status: info.update.status, offered: info.update.version, error: info.update.error, bar: $('updateBar').hidden ? null : $('updateBar').textContent }));
     return api.invoke('quit');
   }
+  if (a.edition) await setEdition(a.edition);
   const w = String(a.world).startsWith('gallery:') ? { dir: 'gallery:', name: 'Shape gallery', size: 1, modified: 0, icon: null }
-    : state.worlds.find((x) => x.name === a.world || x.dir === a.world);
+    : String(a.world).startsWith('java-gallery:') ? { dir: a.world, name: 'Java block gallery', size: 1, modified: 0, icon: null, edition: 'java' }
+    : [...state.worlds, ...(state.javaWorlds || [])].find((x) => x.name === a.world || x.dir === a.world);
   if (!w) { console.log('auto: world not found'); return api.invoke('quit'); }
   await openWorld(w);
   if (a.view) Object.assign(state.view, a.view);
@@ -1323,7 +1389,7 @@ function showUpdate(u) {
   setMode('map');
   syncSelInputs();
   state.worlds = await api.invoke('worlds');
-  renderWorlds();
+  await setEdition(state.edition);
   const auto = await api.invoke('auto');
   if (auto) runAuto(auto).catch((e) => { console.log('auto: error', e.message, e.stack); api.invoke('quit'); });
 })();

@@ -89,54 +89,15 @@ function hexToRgb(hex) {
 const DEFAULT_TINT = { grass: [145, 189, 89], foliage: [119, 171, 47], water: [63, 118, 228] };
 const FIXED_TINT = { birch_foliage: [128, 167, 85], evergreen_foliage: [97, 153, 97], dry_foliage: [161, 132, 85] };
 
-class Resources {
-  // opts: { worldDir, extraPacks: [dir...], gameData, db (LevelDB, optional, for custom biome ids) }
-  constructor(opts) {
-    this.gameData = opts.gameData || findGameData();
-    const roots = comMojangRoots();
-    const vanilla = vanillaPacks(this.gameData, 'resource_packs');
-    const wr = opts.worldDir ? worldPacks(opts.worldDir, 'resource_packs', roots) : { packs: [], missing: [] };
-    const wb = opts.worldDir ? worldPacks(opts.worldDir, 'behavior_packs', roots) : { packs: [], missing: [] };
-    const extra = (opts.extraPacks || []).map((d) => new Pack(d));
-    this.worldResourcePacks = wr.packs; this.worldBehaviorPacks = wb.packs;
-    this.missingPacks = wr.missing;
-    this.extraPacks = extra;
-    this.addonPacks = [...wr.packs, ...extra];
-    this.stack = new PackStack([...vanilla, ...wr.packs, ...extra]);
-    this.hasVanilla = vanilla.length > 0;
-
-    this.blocksJson = {};
-    for (const j of this.stack.readAllJson('blocks.json')) Object.assign(this.blocksJson, j);
-    this.terrain = {};
-    for (const j of this.stack.readAllJson('textures/terrain_texture.json')) Object.assign(this.terrain, j.texture_data || {});
-    // animated textures: path -> { ticks per frame, explicit frame order or null }
-    this.flipbooks = new Map();
-    for (const j of this.stack.readAllJson('textures/flipbook_textures.json')) {
-      if (!Array.isArray(j)) continue;
-      for (const f of j) {
-        if (!f || !f.flipbook_texture) continue;
-        this.flipbooks.set(String(f.flipbook_texture).toLowerCase(), { ticks: Math.max(1, f.ticks_per_frame | 0 || 1), order: Array.isArray(f.frames) ? f.frames : null });
-      }
-    }
-
+// Materials made from textures, shared by both editions: tinting, render modes, the missing-texture
+// pattern, pictures made here (sign text) and the simplified look. Subclasses provide image(path).
+class TextureLibrary {
+  constructor() {
     this.images = new Map();     // texture path -> image | null
     this.materials = [];         // { id, name, image, mode: 'opaque'|'cutout'|'blend', color }
     this.materialIndex = new Map();
     this.tintCache = new Map();
-    this._customBlocks = null; this._geoIndex = null; this._geoCache = new Map();
-    this._biomeNames = new Map(VANILLA_BIOMES);
-    this._biomeColors = new Map();
-    this._clientBiomes = null;
-    if (opts.db) this._loadBiomeIds(opts.db);
     this.missing = this._makeMissing();
-  }
-
-  _loadBiomeIds(db) {
-    try {
-      const v = db.get(Buffer.from('BiomeIdsTable'));
-      const t = v && readNbt(v, { p: 0 });
-      for (const e of (t && t.list) || []) this._biomeNames.set(e.id, String(e.name));
-    } catch (e) { /* older worlds have no table */ }
   }
 
   _makeMissing() {
@@ -147,57 +108,6 @@ class Resources {
     }
     const image = { w: 16, h: 16, data, key: '<missing>', alpha: 'opaque' };
     return this._addMaterial('missing_texture', image, 'opaque', '<missing>');
-  }
-
-  // ---- textures -------------------------------------------------------------------------------
-
-  // Loads a texture by pack path without extension (e.g. textures/blocks/stone).
-  image(texPath) {
-    const key = String(texPath).replace(/\\/g, '/').replace(/\.(png|tga|jpg|jpeg)$/i, '');
-    if (this.images.has(key)) return this.images.get(key);
-    let img = null;
-    try {
-      let file = key, buf = null, ext = null;
-      const set = this.stack.read(key + '.texture_set.json');
-      if (set) {
-        const j = parseJson(set.toString('utf8'));
-        const c = j && j['minecraft:texture_set'] && j['minecraft:texture_set'].color;
-        if (typeof c === 'string' && !c.startsWith('#')) file = key.slice(0, key.lastIndexOf('/') + 1) + c;
-      }
-      for (const e of ['.png', '.tga']) { buf = this.stack.read(file + e); if (buf) { ext = e; break; } }
-      if (buf) {
-        img = decodeImage(buf, ext);
-        const flip = this.flipbooks.get(key.toLowerCase());
-        if (flip && img.h > img.w && img.h % img.w === 0) {
-          // Animated: frames are stacked top to bottom. Everything still shows the first frame;
-          // the whole strip is kept so exporters that can play it get every frame.
-          const count = img.h / img.w;
-          const order = (flip.order || Array.from({ length: count }, (v, i) => i)).filter((i) => i >= 0 && i < count);
-          const strip = { data: img.data, count, order, fps: 20 / flip.ticks };
-          const first = (order[0] || 0) * img.w * img.w * 4;
-          img = { w: img.w, h: img.w, data: img.data.slice(first, first + img.w * img.w * 4), strip };
-        }
-        img.key = key;
-        img.alpha = classifyAlpha(img);
-      }
-    } catch (e) {
-      if (outOfHandles(e)) return null; // temporary: try again next time instead of remembering "missing"
-      img = null;
-    }
-    this.images.set(key, img);
-    return img;
-  }
-
-  // Resolves a terrain_texture short name to { path, tint } (variant = index for legacy texture arrays).
-  terrainTexture(name, variant) {
-    const e = this.terrain[name];
-    if (!e) return null;
-    let t = e.textures;
-    if (Array.isArray(t)) t = t[Math.min(variant || 0, t.length - 1)];
-    if (t && Array.isArray(t.variations)) t = t.variations[0]; // weighted random variants: use the main one
-    if (!t) return null;
-    if (typeof t === 'string') return { path: t, tint: null };
-    return { path: t.path, tint: hexToRgb(t.tint_color) };
   }
 
   _addMaterial(name, image, mode, key) {
@@ -258,9 +168,6 @@ class Resources {
     return m.simple;
   }
 
-  // Lets go of every file the packs hold open. Called when the world is closed or reloaded.
-  close() { for (const p of this.stack.packs) p.close(); }
-
   // A material from a picture made here (sign text, a composed banner). key makes it reusable.
   customMaterial(key, name, image) {
     const k = 'custom|' + key;
@@ -270,6 +177,125 @@ class Resources {
     image.key = k;
     return this._addMaterial(name, image, image.alpha, k);
   }
+
+  // Average visible colour of a material (for the map).
+  materialColor(id) {
+    const m = this.materials[id];
+    if (m.color) return m.color;
+    const d = m.image.data;
+    let r = 0, g = 0, b = 0, n = 0;
+    for (let i = 0; i < d.length; i += 4) {
+      const a = d[i + 3];
+      if (a < 32) continue;
+      r += d[i] * a; g += d[i + 1] * a; b += d[i + 2] * a; n += a;
+    }
+    m.color = n ? [r / n, g / n, b / n] : [0, 0, 0];
+    m.coverage = n / (d.length / 4 * 255);
+    return m.color;
+  }
+}
+
+class Resources extends TextureLibrary {
+  // opts: { worldDir, extraPacks: [dir...], gameData, db (LevelDB, optional, for custom biome ids) }
+  constructor(opts) {
+    super();
+    this.gameData = opts.gameData || findGameData();
+    const roots = comMojangRoots();
+    const vanilla = vanillaPacks(this.gameData, 'resource_packs');
+    const wr = opts.worldDir ? worldPacks(opts.worldDir, 'resource_packs', roots) : { packs: [], missing: [] };
+    const wb = opts.worldDir ? worldPacks(opts.worldDir, 'behavior_packs', roots) : { packs: [], missing: [] };
+    const extra = (opts.extraPacks || []).map((d) => new Pack(d));
+    this.worldResourcePacks = wr.packs; this.worldBehaviorPacks = wb.packs;
+    this.missingPacks = wr.missing;
+    this.extraPacks = extra;
+    this.addonPacks = [...wr.packs, ...extra];
+    this.stack = new PackStack([...vanilla, ...wr.packs, ...extra]);
+    this.hasVanilla = vanilla.length > 0;
+
+    this.blocksJson = {};
+    for (const j of this.stack.readAllJson('blocks.json')) Object.assign(this.blocksJson, j);
+    this.terrain = {};
+    for (const j of this.stack.readAllJson('textures/terrain_texture.json')) Object.assign(this.terrain, j.texture_data || {});
+    // animated textures: path -> { ticks per frame, explicit frame order or null }
+    this.flipbooks = new Map();
+    for (const j of this.stack.readAllJson('textures/flipbook_textures.json')) {
+      if (!Array.isArray(j)) continue;
+      for (const f of j) {
+        if (!f || !f.flipbook_texture) continue;
+        this.flipbooks.set(String(f.flipbook_texture).toLowerCase(), { ticks: Math.max(1, f.ticks_per_frame | 0 || 1), order: Array.isArray(f.frames) ? f.frames : null });
+      }
+    }
+
+    this._customBlocks = null; this._geoIndex = null; this._geoCache = new Map();
+    this._biomeNames = new Map(VANILLA_BIOMES);
+    this._biomeColors = new Map();
+    this._clientBiomes = null;
+    if (opts.db) this._loadBiomeIds(opts.db);
+  }
+
+  biomeName(id) { return this._biomeNames.get(id) || null; }
+
+  _loadBiomeIds(db) {
+    try {
+      const v = db.get(Buffer.from('BiomeIdsTable'));
+      const t = v && readNbt(v, { p: 0 });
+      for (const e of (t && t.list) || []) this._biomeNames.set(e.id, String(e.name));
+    } catch (e) { /* older worlds have no table */ }
+  }
+
+  // ---- textures -------------------------------------------------------------------------------
+
+  // Loads a texture by pack path without extension (e.g. textures/blocks/stone).
+  image(texPath) {
+    const key = String(texPath).replace(/\\/g, '/').replace(/\.(png|tga|jpg|jpeg)$/i, '');
+    if (this.images.has(key)) return this.images.get(key);
+    let img = null;
+    try {
+      let file = key, buf = null, ext = null;
+      const set = this.stack.read(key + '.texture_set.json');
+      if (set) {
+        const j = parseJson(set.toString('utf8'));
+        const c = j && j['minecraft:texture_set'] && j['minecraft:texture_set'].color;
+        if (typeof c === 'string' && !c.startsWith('#')) file = key.slice(0, key.lastIndexOf('/') + 1) + c;
+      }
+      for (const e of ['.png', '.tga']) { buf = this.stack.read(file + e); if (buf) { ext = e; break; } }
+      if (buf) {
+        img = decodeImage(buf, ext);
+        const flip = this.flipbooks.get(key.toLowerCase());
+        if (flip && img.h > img.w && img.h % img.w === 0) {
+          // Animated: frames are stacked top to bottom. Everything still shows the first frame;
+          // the whole strip is kept so exporters that can play it get every frame.
+          const count = img.h / img.w;
+          const order = (flip.order || Array.from({ length: count }, (v, i) => i)).filter((i) => i >= 0 && i < count);
+          const strip = { data: img.data, count, order, fps: 20 / flip.ticks };
+          const first = (order[0] || 0) * img.w * img.w * 4;
+          img = { w: img.w, h: img.w, data: img.data.slice(first, first + img.w * img.w * 4), strip };
+        }
+        img.key = key;
+        img.alpha = classifyAlpha(img);
+      }
+    } catch (e) {
+      if (outOfHandles(e)) return null; // temporary: try again next time instead of remembering "missing"
+      img = null;
+    }
+    this.images.set(key, img);
+    return img;
+  }
+
+  // Resolves a terrain_texture short name to { path, tint } (variant = index for legacy texture arrays).
+  terrainTexture(name, variant) {
+    const e = this.terrain[name];
+    if (!e) return null;
+    let t = e.textures;
+    if (Array.isArray(t)) t = t[Math.min(variant || 0, t.length - 1)];
+    if (t && Array.isArray(t.variations)) t = t.variations[0]; // weighted random variants: use the main one
+    if (!t) return null;
+    if (typeof t === 'string') return { path: t, tint: null };
+    return { path: t.path, tint: hexToRgb(t.tint_color) };
+  }
+
+  // Lets go of every file the packs hold open. Called when the world is closed or reloaded.
+  close() { for (const p of this.stack.packs) p.close(); }
 
   // ---- entities -------------------------------------------------------------------------------
 
@@ -334,22 +360,6 @@ class Resources {
     let t = e.textures;
     if (Array.isArray(t)) t = t[0];
     return typeof t === 'string' ? t : (t && t.path) || null;
-  }
-
-  // Average visible colour of a material (for the map).
-  materialColor(id) {
-    const m = this.materials[id];
-    if (m.color) return m.color;
-    const d = m.image.data;
-    let r = 0, g = 0, b = 0, n = 0;
-    for (let i = 0; i < d.length; i += 4) {
-      const a = d[i + 3];
-      if (a < 32) continue;
-      r += d[i] * a; g += d[i + 1] * a; b += d[i + 2] * a; n += a;
-    }
-    m.color = n ? [r / n, g / n, b / n] : [0, 0, 0];
-    m.coverage = n / (d.length / 4 * 255);
-    return m.color;
   }
 
   // ---- biomes ---------------------------------------------------------------------------------
@@ -487,4 +497,4 @@ function classifyAlpha(img) {
   return 'opaque';
 }
 
-module.exports = { Resources, encodePng, hexToRgb };
+module.exports = { Resources, TextureLibrary, encodePng, decodeImage, classifyAlpha, hexToRgb };

@@ -6,6 +6,16 @@ const os = require('os');
 const { Worker } = require('worker_threads');
 const { listWorlds, describeWorld } = require('./core/world');
 const { extractZip, findPacks } = require('./core/zip');
+const javaInstall = require('./core/java/install');
+
+// A Java resource pack is used as it is (zip or folder with pack.mcmeta / assets).
+const isJavaPack = (p) => {
+  try {
+    if (fs.statSync(p).isDirectory()) return fs.existsSync(path.join(p, 'pack.mcmeta')) || fs.existsSync(path.join(p, 'assets'));
+    return /\.(zip|jar)$/i.test(p);
+  } catch (e) { return false; }
+};
+const describeAny = (dir) => (javaInstall.isJavaWorld(dir) ? javaInstall.describeJavaWorld(dir, javaInstall.gameOf(dir)) : describeWorld(dir));
 
 let win = null;
 
@@ -68,6 +78,7 @@ function resolvePackPaths(p) {
 
 function setupIpc() {
   ipcMain.handle('worlds', () => listWorlds());
+  ipcMain.handle('javaWorlds', () => javaInstall.listJavaWorlds());
 
   ipcMain.handle('open', async (e, a) => {
     ensureWorkers();
@@ -93,23 +104,28 @@ function setupIpc() {
   });
   ipcMain.handle('cancel', () => jobWorker.call('cancel'));
 
-  ipcMain.handle('pickPack', async () => {
+  ipcMain.handle('pickPack', async (e, a) => {
+    const java = a && a.edition === 'java';
     const r = await dialog.showOpenDialog(win, {
       title: 'Add a resource pack',
       properties: ['openFile'],
-      filters: [{ name: 'Resource packs', extensions: ['mcpack', 'mcaddon', 'zip'] }, { name: 'All files', extensions: ['*'] }],
+      filters: java ? [{ name: 'Java resource packs and mods', extensions: ['zip', 'jar'] }, { name: 'All files', extensions: ['*'] }]
+        : [{ name: 'Resource packs', extensions: ['mcpack', 'mcaddon', 'zip'] }, { name: 'All files', extensions: ['*'] }],
     });
     if (r.canceled || !r.filePaths.length) return [];
-    return resolvePackPaths(r.filePaths[0]);
+    return java ? [r.filePaths[0]] : resolvePackPaths(r.filePaths[0]);
   });
-  ipcMain.handle('pickPackFolder', async () => {
+  ipcMain.handle('pickPackFolder', async (e, a) => {
     const r = await dialog.showOpenDialog(win, { title: 'Add a resource pack folder', properties: ['openDirectory'] });
     if (r.canceled || !r.filePaths.length) return [];
-    return resolvePackPaths(r.filePaths[0]);
+    return a && a.edition === 'java' ? [r.filePaths[0]] : resolvePackPaths(r.filePaths[0]);
   });
-  ipcMain.handle('resolveDrop', (e, p) => {
+  ipcMain.handle('resolveDrop', (e, a) => {
     // A dropped path can be a world folder, a .mcworld, or a pack (folder or archive).
+    const p = typeof a === 'string' ? a : a.path;
     const isDir = fs.statSync(p).isDirectory();
+    if (isDir && javaInstall.isJavaWorld(p)) return { world: describeAny(p) };
+    if (a && a.edition === 'java' && isJavaPack(p)) return { packs: [p] };
     if (isDir && fs.existsSync(path.join(p, 'level.dat'))) return { world: describeWorld(p) };
     if (!isDir && /\.mcworld$/i.test(p)) {
       const dir = importArchive(p);
@@ -131,7 +147,7 @@ function setupIpc() {
   ipcMain.handle('pickWorldFolder', async () => {
     const r = await dialog.showOpenDialog(win, { title: 'Open a world folder', properties: ['openDirectory'] });
     if (r.canceled || !r.filePaths.length) return null;
-    return describeWorld(r.filePaths[0]);
+    return describeAny(r.filePaths[0]);
   });
 
   ipcMain.handle('saveObj', async (e, name) => {

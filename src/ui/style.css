@@ -38,6 +38,8 @@ input[type=number]::-webkit-inner-spin-button { opacity: .3; }
 .world img, .world .noicon { width: 54px; height: 30px; border-radius: 4px; object-fit: cover; background: #0e1013; flex: none; }
 .world .name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .world .meta { font-size: 11px; color: var(--muted); }
+.world .meta.sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#editionSeg button { flex: 1; }
 .world > div { min-width: 0; }
 ::-webkit-scrollbar { width: 10px; } ::-webkit-scrollbar-thumb { background: #333948; border-radius: 5px; border: 2px solid var(--panel); }
 

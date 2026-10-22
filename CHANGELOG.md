@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.0 - 2026-10-22
+
+- Java Edition worlds: switch the world list to Java at the top left. Modded worlds work too.
+- The Java side uses the textures and block models of the world's own game version and its mods.
+
 ## 1.0.3 - 2026-10-20
 
 - Chunk helper: warns when Minecraft was already running before the helper was added and needs a restart to see it.

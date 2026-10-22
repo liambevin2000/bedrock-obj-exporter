@@ -5,6 +5,28 @@ const { readNbt } = require('./nbt');
 
 const SPAWN_AREA = { 1: 'Nether fortress', 2: 'Swamp hut', 3: 'Ocean monument', 5: 'Pillager outpost' };
 
+// Java block entity ids for the same kinds of place.
+const JAVA_POINTS = {
+  'minecraft:mob_spawner': 'MobSpawner', 'minecraft:trial_spawner': 'TrialSpawner', 'minecraft:vault': 'Vault',
+  'minecraft:sculk_shrieker': 'SculkShrieker', 'minecraft:end_portal': 'EndPortal', 'minecraft:end_gateway': 'EndGateway',
+  'minecraft:beacon': 'Beacon', 'minecraft:conduit': 'Conduit', 'minecraft:brushable_block': 'BrushableBlock', 'minecraft:bell': 'Bell',
+  'minecraft:jukebox': 'Jukebox', 'minecraft:command_block': 'CommandBlock', 'minecraft:structure_block': 'StructureBlock',
+  'minecraft:chest': 'Chest', 'minecraft:trapped_chest': 'Chest', 'minecraft:barrel': 'Barrel', 'minecraft:sign': 'Sign',
+  'minecraft:hanging_sign': 'HangingSign', 'minecraft:banner': 'Banner', 'minecraft:bed': 'Bed', 'minecraft:decorated_pot': 'DecoratedPot',
+  'minecraft:skull': 'Skull',
+};
+// Java structure ids -> names people use.
+const javaStructure = (id) => {
+  const s = String(id).replace(/^minecraft:/, '');
+  const names = { village_plains: 'Village (plains)', village_desert: 'Village (desert)', village_savanna: 'Village (savanna)', village_snowy: 'Village (snowy)',
+    village_taiga: 'Village (taiga)', mansion: 'Woodland mansion', monument: 'Ocean monument', fortress: 'Nether fortress', bastion_remnant: 'Bastion remnant',
+    stronghold: 'Stronghold', mineshaft: 'Mineshaft', mineshaft_mesa: 'Mineshaft (badlands)', desert_pyramid: 'Desert pyramid', jungle_pyramid: 'Jungle temple',
+    swamp_hut: 'Swamp hut', igloo: 'Igloo', pillager_outpost: 'Pillager outpost', ancient_city: 'Ancient city', trial_chambers: 'Trial chambers',
+    trail_ruins: 'Trail ruins', end_city: 'End city', buried_treasure: 'Buried treasure', ruined_portal: 'Ruined portal', shipwreck: 'Shipwreck',
+    shipwreck_beached: 'Shipwreck (beached)', ocean_ruin_cold: 'Ocean ruin (cold)', ocean_ruin_warm: 'Ocean ruin (warm)', nether_fossil: 'Nether fossil' };
+  return names[s] || (/^ruined_portal/.test(s) ? 'Ruined portal' : title(s));
+};
+
 // Block entities that mark a place worth finding. Each becomes a list of areas.
 const POINTS = {
   MobSpawner: 'Monster spawner', TrialSpawner: 'Trial chamber (trial spawner)', Vault: 'Trial chamber (vault)',
@@ -35,8 +57,9 @@ async function locate(session, dim, chunks, step) {
         if (kind) structures.push({ kind, x: (s.x0 + s.x1) >> 1, y: (s.y0 + s.y1) >> 1, z: (s.z0 + s.z1) >> 1 });
       }
     }
+    if (world.structureStarts) for (const s of world.structureStarts(cx, cz, dim)) structures.push({ kind: javaStructure(s.kind), x: s.x, y: s.y, z: s.z });
     for (const be of world.getBlockEntities(cx, cz, dim).values()) {
-      const label = POINTS[be.id];
+      const label = POINTS[be.id] || POINTS[JAVA_POINTS[be.id]];
       if (label) add(label, be.x, be.y, be.z);
     }
     if (step && (i & 1023) === 1023) await step(i + 1, n);
@@ -44,7 +67,7 @@ async function locate(session, dim, chunks, step) {
 
   // villages keep their own records
   const dimName = ['Overworld', 'Nether', 'TheEnd'][dim];
-  for (const key of world.db.villageKeys || []) {
+  for (const key of (world.db && world.db.villageKeys) || []) {
     const named = /^VILLAGE_(Overworld|Nether|TheEnd)_/.exec(key);
     if (named ? named[1] !== dimName : dim !== 0) continue;
     try {
@@ -71,7 +94,7 @@ async function locate(session, dim, chunks, step) {
   }
 
   return {
-    biomes: [...biomes.entries()].map(([id, a]) => ({ id, name: title(res._biomeNames.get(id) || 'biome ' + id), chunks: Int32Array.from(a) }))
+    biomes: [...biomes.entries()].map(([id, a]) => ({ id, name: title(res.biomeName(id) || 'biome ' + id), chunks: Int32Array.from(a) }))
       .sort((p, q) => q.chunks.length - p.chunks.length),
     structures: [...byKind.entries()].map(([kind, places]) => ({ kind, places })).sort((p, q) => p.kind.localeCompare(q.kind)),
   };

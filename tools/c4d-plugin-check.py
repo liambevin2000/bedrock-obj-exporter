@@ -91,7 +91,11 @@ ns = {'__name__': 'bedrock_world_importer'}
 with open(plugin, 'r', encoding='utf-8') as f:
     exec(compile(f.read(), plugin, 'exec'), ns)
 
-with open(ns['get_handoff_path'](), 'r', encoding='utf-8') as f:
+# an export folder or handoff.json can be given instead of the latest real export
+handoff_path = sys.argv[1] if len(sys.argv) > 1 else ns['get_handoff_path']()
+if os.path.isdir(handoff_path):
+    handoff_path = os.path.join(handoff_path, 'handoff.json')
+with open(handoff_path, 'r', encoding='utf-8') as f:
     handoff = json.load(f)
 doc = Doc()
 parent, total = ns['import_world'](doc, handoff)

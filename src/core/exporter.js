@@ -11,19 +11,34 @@ class Session {
   // opts: { worldDir, extraPacks }
   constructor(opts) {
     this.opts = opts;
-    const gallery = String(opts.worldDir).startsWith('gallery:'); // built-in test scene of block shapes
+    const dir = String(opts.worldDir);
+    if (dir.startsWith('java-gallery:') || require('./java/install').isJavaWorld(dir)) {
+      // Java Edition: region files, the game jar's block models, mods of the world's instance
+      this.edition = 'java';
+      const gallery = dir.startsWith('java-gallery:');
+      this.world = gallery ? new (require('./java/gallery').JavaGalleryWorld)(dir.slice(13) || null) : new (require('./java/world').JavaWorld)(opts.worldDir);
+      this.res = new (require('./java/resources').JavaResources)({ worldDir: gallery ? null : opts.worldDir, version: this.world.version, extraPacks: opts.extraPacks, biomeNames: this.world.biomeNames });
+      this.models = new (require('./java/models').JavaModels)(this.res);
+      if (gallery) this.world.setup(this.res, this.models);
+      this.entities = new (require('./java/entities').JavaEntities)(this.res, this.models);
+      return;
+    }
+    this.edition = 'bedrock';
+    const gallery = dir.startsWith('gallery:'); // built-in test scene of block shapes
     this.world = gallery ? new (require('./gallery').GalleryWorld)() : new World(opts.worldDir);
     this.res = new Resources({ worldDir: gallery ? null : opts.worldDir, extraPacks: opts.extraPacks, db: this.world.db });
     this.models = new Models(this.res);
     this.entities = new (require('./entities').Entities)(this.res, this.models);
   }
 
+  minY(dim) { return this.world.minY ? this.world.minY(dim) : DIM_MIN_Y[dim] || 0; }
+
   // sel: { dim, x0, y0, z0, x1, y1, z1 } inclusive. Origin is the centre of the footprint at its lowest layer.
   mesher(sel, opts = {}) {
     const bounds = normalise(sel);
     const origin = opts.origin || [Math.floor((bounds.x0 + bounds.x1 + 1) / 2), bounds.y0, Math.floor((bounds.z0 + bounds.z1 + 1) / 2)];
     return new Mesher(this.world, this.models, { dim: sel.dim || 0, bounds, origin, greedy: opts.greedy, fill: opts.fill, edits: opts.edits, only: opts.only,
-      entities: opts.noEntities ? null : this.entities });
+      entities: opts.noEntities ? null : this.entities, minY: this.minY(sel.dim || 0) });
   }
 
   // Writes an OBJ. onProgress(done, total) may return false to cancel.
@@ -68,7 +83,7 @@ class Session {
     const N = TILE * 16;
     const rgba = new Uint8ClampedArray(N * N * 4);
     const heights = new Int16Array(N * N).fill(-32768);
-    const minY = DIM_MIN_Y[dim] || 0;
+    const minY = this.minY(dim);
     const list = this.models.list;
     let any = false;
     for (let j = 0; j < TILE; j++) {
@@ -129,8 +144,17 @@ class Session {
 
   packInfo() {
     const r = this.res;
+    if (this.edition === 'java') {
+      return {
+        edition: 'java', vanilla: r.hasVanilla, gameData: r.gameData, gameVersion: r.gameJar ? r.gameJar.version : null, worldVersion: this.world.version,
+        resourcePacks: r.worldResourcePacks.map((p) => ({ name: p.name, dir: p.src })),
+        behaviorPacks: [], mods: r.modPacks.length, dataPacks: r.dataPacks.length,
+        extraPacks: r.extraPacks.map((p) => ({ name: p.description || p.name, dir: p.src })),
+        missing: [],
+      };
+    }
     return {
-      vanilla: r.hasVanilla, gameData: r.gameData,
+      edition: 'bedrock', vanilla: r.hasVanilla, gameData: r.gameData,
       resourcePacks: r.worldResourcePacks.map((p) => ({ name: p.name, dir: p.dir })),
       behaviorPacks: r.worldBehaviorPacks.map((p) => ({ name: p.name, dir: p.dir })),
       extraPacks: r.extraPacks.map((p) => ({ name: p.name, dir: p.dir })),

@@ -46,7 +46,7 @@ class Mesher {
     this.entities = opts.entities || null; this.entityCount = 0; // scenery entities (see entities.js)
     this.ops = null; this.only = !!opts.only; this.edited = new Map();
     if (opts.only || (opts.edits && opts.edits.length)) this._prepareEdits(opts.edits || [], opts.only); this.groundish = []; this.estimated = 0;
-    this.minY = DIM_MIN_Y[this.dim] || 0;
+    this.minY = opts.minY !== undefined ? opts.minY : DIM_MIN_Y[this.dim] || 0;
     this.chunks = new Map(); // decoded chunk cache
     this.cacheLimit = 12;
     this.height = this.b.y1 - this.b.y0 + 1;

@@ -1,10 +1,10 @@
 {
-  "version": "1.0.3",
+  "version": "1.1.0",
   "minShell": "1.0.0",
-  "date": "2026-10-20",
+  "date": "2026-10-22",
   "notes": [
-    "Chunk helper: warns when Minecraft was already running before the helper was added and needs a restart to see it.",
-    "Cinema 4D plugin: shows an icon.png placed next to it in its plugin folder."
+    "Java Edition worlds: switch the world list to Java at the top left. Modded worlds work too.",
+    "The Java side uses the textures and block models of the world's own game version and its mods."
   ],
   "download": "https://github.com/liambevin2000/bedrock-obj-exporter/releases/latest",
   "files": [
@@ -35,8 +35,8 @@
     },
     {
       "path": "src/core/exporter.js",
-      "size": 6597,
-      "sha256": "9182617e5809ff4dc8e47516e882a64566d202312fe4fda7a6cac6255d2c2e74"
+      "size": 8163,
+      "sha256": "7c81739133a94cff440d0c81bf8afa71ae45f7a05d6ce1eed1b84b82dc70d44a"
     },
     {
       "path": "src/core/gallery.js",
@@ -49,19 +49,74 @@
       "sha256": "452693f206292050abf9dc6961d103116a27a0027c89569749546fbce948626b"
     },
     {
+      "path": "src/core/java/entities.js",
+      "size": 4973,
+      "sha256": "636eb29b4e21eb09a131d51a7b28fcef5b143c5e3666d754d874e6b0fa9f93fa"
+    },
+    {
+      "path": "src/core/java/gallery.js",
+      "size": 7552,
+      "sha256": "74b9f1e2602f9adb5d664eb628c2bd75e02da9f312d8e99eb568573acb6a504c"
+    },
+    {
+      "path": "src/core/java/install.js",
+      "size": 7401,
+      "sha256": "de48d7e90134e39ead72bb97662ac596a9ee7f81c3c9930804a578e6af902b1f"
+    },
+    {
+      "path": "src/core/java/jar.js",
+      "size": 5724,
+      "sha256": "d17225bf95a9182819d764ed30e45a80668fdf84c376d244d785319f646b21a4"
+    },
+    {
+      "path": "src/core/java/legacy.js",
+      "size": 1945,
+      "sha256": "25d43ec260fdd361f3139635c68b30645f22e365d38db41003d094f3af0310a1"
+    },
+    {
+      "path": "src/core/java/models.js",
+      "size": 18042,
+      "sha256": "9456da5e237c222a9dfed48ca14805ed89abdb7340f6ba0a05cef4f6802168c6"
+    },
+    {
+      "path": "src/core/java/nbt.js",
+      "size": 2613,
+      "sha256": "cb8252a6d73e62c7405872efb8bc87133ef08283460732ebec799b5100f59782"
+    },
+    {
+      "path": "src/core/java/region.js",
+      "size": 5194,
+      "sha256": "3a693774b14b293b322fe9a3f61ff288ec95e5b9dbe0eb7d4723ba1e24b03069"
+    },
+    {
+      "path": "src/core/java/resources.js",
+      "size": 8990,
+      "sha256": "984e943933b0f3986a5bce112cf3468900e899c41f6c2e4d19b2da2890432ed0"
+    },
+    {
+      "path": "src/core/java/special.js",
+      "size": 20864,
+      "sha256": "fb8ab633e00d7b0e231c701910d9bb839e184e2d3e0ebad7824040f0644ddb4b"
+    },
+    {
+      "path": "src/core/java/world.js",
+      "size": 17140,
+      "sha256": "c829e676024733271ab90e7c58d2c8161589d18def4c129c9e03d8e2bb9e024c"
+    },
+    {
       "path": "src/core/leveldb.js",
       "size": 13501,
       "sha256": "4b532295a72cef91a8350203f8eee29a5dd789ddb63123fd95a6729d546187a3"
     },
     {
       "path": "src/core/locate.js",
-      "size": 4292,
-      "sha256": "480b533240c3b8673d22d2e7f1c39edf43539ccb11123cdb14d4de94b5ce39e3"
+      "size": 6493,
+      "sha256": "f8e933e1ac2fc0fbcccdbc6cae20855ffc2cb8c832bad333586be35948409ca6"
     },
     {
       "path": "src/core/mesher.js",
-      "size": 24304,
-      "sha256": "d59354a5ad2d804abb3fb409c8939c3cba5a66c8ea55de6a3b63527dbf9ac11e"
+      "size": 24342,
+      "sha256": "2a7ec4ae5e32fd8b796091b9ad05844a6435bbf70f32550519b3d1127b96bf28"
     },
     {
       "path": "src/core/models.js",
@@ -100,8 +155,8 @@
     },
     {
       "path": "src/core/resources.js",
-      "size": 22581,
-      "sha256": "8a0a62a793f8df09d3de2d90dfb3ed52e2a6b0bcfe8c253b22fc92dff977dffd"
+      "size": 22972,
+      "sha256": "0d7f6d326d9818852e7f905daac5806b48fdda386293c20369d3c1b7edf5f52d"
     },
     {
       "path": "src/core/simplify.js",
@@ -135,8 +190,8 @@
     },
     {
       "path": "src/main.js",
-      "size": 10119,
-      "sha256": "45c937b8e59e15eb8d829829185852f1040f4568791e195fdf9d39392929db28"
+      "size": 11162,
+      "sha256": "ed04bbde21f93574094c49e1a11a83460b2c255b35f10a6840bb3e96cb748b3a"
     },
     {
       "path": "src/preload.js",
@@ -145,13 +200,13 @@
     },
     {
       "path": "src/ui/app.js",
-      "size": 71768,
-      "sha256": "65c1292c505a6cf2ed61152d4604ac96dd51b5400334836211b341462e48512e"
+      "size": 75829,
+      "sha256": "5343baa8ebe48d93cd0b7d277c2c0dd88fd47124e41d7d95f4c3e0c8c51316e0"
     },
     {
       "path": "src/ui/index.html",
-      "size": 10598,
-      "sha256": "e4c050788d6851b5e6b6e3074e53cd45a3f8809cc59f94be89e9723e19ece618"
+      "size": 10792,
+      "sha256": "5ce02d8fd17eb4e6bc03f04c09668a6fb21df7e2ca0a32998b745e6e72596443"
     },
     {
       "path": "src/ui/pov.js",
@@ -165,8 +220,8 @@
     },
     {
       "path": "src/ui/style.css",
-      "size": 11926,
-      "sha256": "c0b084bc99800d08053b45e7db65ec045d72e3ff4ef9191d9ca40603f210bc1d"
+      "size": 12043,
+      "sha256": "ec1f6664f7193b1c094f8117245f0e546e8b421aabbadc2390f6b27b28fc6bf5"
     },
     {
       "path": "src/ui/vendor/OrbitControls.js",
@@ -180,8 +235,8 @@
     },
     {
       "path": "src/worker.js",
-      "size": 8661,
-      "sha256": "81d63a481dbe1c683dd5a928ecd082fb4c495076c00f27acf59c608b9f322d14"
+      "size": 9178,
+      "sha256": "0ea2c78081489c1b5b0125a558903a7b8116103a8a38ed77db06245812fd65c2"
     },
     {
       "path": "c4d-plugin/BedrockWorldImporter.pyp",
@@ -190,8 +245,8 @@
     },
     {
       "path": "changelog.json",
-      "size": 1049,
-      "sha256": "9fbc3df9680bef65e428c165d69a21ec9e43d9cac488b594b784d2f01d2a807e"
+      "size": 1335,
+      "sha256": "09a821ec5fab700d3b01ca1673886f23ce95c1da56441053d06fae82736c9689"
     }
   ]
 }

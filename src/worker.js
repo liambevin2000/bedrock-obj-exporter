@@ -20,6 +20,11 @@ const handlers = {
   },
   close() { jobToken++; if (session) { session.close(); session = null; } return true; },
   scan() {
+    if (session.world.scan) { // Java worlds (and anything else that scans itself)
+      const s = session.world.scan();
+      lastScan = s.dims.map((d) => ({ chunks: new Int32Array(d.chunks) }));
+      return { result: { dims: s.dims, player: s.player, spawn: s.spawn, edition: session.edition, minY: [0, 1, 2].map((d) => session.minY(d)) }, transfer: s.dims.map((d) => d.chunks.buffer) };
+    }
     const dims = scanChunks(session.world.db);
     // kept for "locate" (the copy sent to the window is transferred away)
     lastScan = dims.map((d) => ({ chunks: new Int32Array(d.chunks) }));
@@ -30,7 +35,7 @@ const handlers = {
       const p = require('./core/nbt').readNbt(session.world.db.get(Buffer.from('~local_player')), { p: 0 });
       player = { x: p.Pos[0], y: p.Pos[1], z: p.Pos[2], dim: p.DimensionId | 0 };
     } catch (e) { /* no local player saved */ }
-    return { result: { dims, player, spawn: [ld.SpawnX | 0, ld.SpawnY | 0, ld.SpawnZ | 0] }, transfer };
+    return { result: { dims, player, spawn: [ld.SpawnX | 0, ld.SpawnY | 0, ld.SpawnZ | 0], edition: session.edition, minY: [0, 1, 2].map((d) => session.minY(d)) }, transfer };
   },
   tile(a) {
     const t = session.mapTile(a.dim, a.tx, a.tz, a.ceiling);
@@ -41,7 +46,7 @@ const handlers = {
 
   // Where biomes and recorded structures are, for the Locate panel.
   async locate(a, emit) {
-    if (!lastScan) lastScan = scanChunks(session.world.db);
+    if (!lastScan) lastScan = session.world.scan ? session.world.scan().dims : scanChunks(session.world.db);
     const { locate } = require('./core/locate');
     const r = await locate(session, a.dim, lastScan[a.dim].chunks, async (done, total) => { emit({ type: 'progress', done, total }); await tick(); });
     return { result: r, transfer: r.biomes.map((b) => b.chunks.buffer) };
