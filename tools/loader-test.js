@@ -30,7 +30,12 @@ try {
   check('batches cover every chunk once', loader.batches(chunks).reduce((n, b) => n + b[4].length / 2, 0) === chunks.length);
   let l = list();
   check('listed in world_behavior_packs.json', l && l.length === 1 && l[0].pack_id === loader.PACK_UUID);
-  const firstBuild = l[0].version[2];
+  const firstVersion = l[0].version;
+  // Bedrock refuses packs with a version part above 65535
+  const valid = (v) => v.length === 3 && v.every((n) => Number.isInteger(n) && n >= 0 && n <= 65535);
+  const later = (a, b) => a[0] !== b[0] ? a[0] > b[0] : a[1] !== b[1] ? a[1] > b[1] : a[2] > b[2];
+  check('version parts Bedrock accepts', valid(firstVersion), JSON.stringify(firstVersion));
+  check('a build number from 1.0.3 (tens of millions) still gives a valid version', valid(loader.packVersion(56900000)) && valid(loader.packVersion(3e9)));
   check('records when it was added', Math.abs(loader.status(worldDir).installedAt - Date.now()) < 5000);
 
   const pack = path.join(worldDir, 'behavior_packs', 'bedrock_exporter_chunk_loader');
@@ -45,7 +50,8 @@ try {
   loader.install(worldDir, 1, chunks.slice(0, 5));
   l = list();
   const manifest = JSON.parse(fs.readFileSync(path.join(pack, 'manifest.json'), 'utf8'));
-  check('reinstall bumps the version', manifest.header.version[2] === firstBuild + 1 && l[0].version[2] === firstBuild + 1);
+  check('reinstall raises the version', later(manifest.header.version, firstVersion) && JSON.stringify(l[0].version) === JSON.stringify(manifest.header.version) && valid(manifest.header.version));
+  const secondVersion = manifest.header.version;
   check('reinstall keeps other packs', l.length === 2 && l[1].pack_id === 'user-pack');
   check('status reports the new job', loader.status(worldDir).dim === 1 && loader.status(worldDir).chunks.length === 5);
 
@@ -59,7 +65,7 @@ try {
   Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 2100);
   fs.rmSync(path.join(worldDir, 'world_behavior_packs.json'));
   loader.install(worldDir, 0, chunks);
-  check('adding it again after removal still raises the version', list()[0].version[2] > firstBuild + 1);
+  check('adding it again after removal still raises the version', later(list()[0].version, secondVersion) && valid(list()[0].version));
   loader.remove(worldDir);
   check('no leftovers in a world that had no packs', !fs.existsSync(path.join(worldDir, 'world_behavior_packs.json')) && !fs.existsSync(path.join(worldDir, 'behavior_packs')));
 } finally {

@@ -42,6 +42,10 @@ function readList(worldDir) {
 }
 const isOurs = (e) => e && String(e.pack_id).toLowerCase() === PACK_UUID;
 
+// Bedrock refuses packs whose version parts are above 65535 ("failed to load"), so a large build
+// number is spread over the second and third parts. Still rises with every build.
+function packVersion(build) { return [1, Math.floor(build / 50000), build % 50000]; }
+
 // chunks: [[cx, cz], ...] in dimension dim (0 overworld, 1 nether, 2 end).
 function install(worldDir, dim, chunks) {
   const check = canInstall(worldDir);
@@ -51,7 +55,7 @@ function install(worldDir, dim, chunks) {
   const prev = status(worldDir);
   // a higher version every time, also after the helper was removed, so the game never runs a cached copy
   const build = Math.max(prev ? prev.build + 1 : 1, Math.floor(Date.now() / 1000) - 1735689600); // seconds since 2025
-  const version = [1, 0, build];
+  const version = packVersion(build);
   const job = { id: `${Date.now().toString(36)}-${build}`, dim: DIM_IDS[dim] || 'overworld', total: chunks.length, batches: batches(chunks) };
 
   fs.mkdirSync(path.join(dir, 'scripts'), { recursive: true });
@@ -212,4 +216,4 @@ function minecraftStartedAt() {
   });
 }
 
-module.exports = { canInstall, install, status, remove, batches, minecraftStartedAt, PACK_UUID };
+module.exports = { canInstall, install, status, remove, batches, minecraftStartedAt, packVersion, PACK_UUID };

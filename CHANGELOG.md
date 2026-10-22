@@ -4,6 +4,7 @@
 
 - Java Edition worlds: switch the world list to Java at the top left. Modded worlds work too.
 - The Java side uses the textures and block models of the world's own game version and its mods.
+- Fixed the chunk helper failing to load in Minecraft ("packs failed to load") since 1.0.3.
 
 ## 1.0.3 - 2026-10-20
 

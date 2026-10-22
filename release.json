@@ -4,7 +4,8 @@
   "date": "2026-10-22",
   "notes": [
     "Java Edition worlds: switch the world list to Java at the top left. Modded worlds work too.",
-    "The Java side uses the textures and block models of the world's own game version and its mods."
+    "The Java side uses the textures and block models of the world's own game version and its mods.",
+    "Fixed the chunk helper failing to load in Minecraft (\"packs failed to load\") since 1.0.3."
   ],
   "download": "https://github.com/liambevin2000/bedrock-obj-exporter/releases/latest",
   "files": [
@@ -25,8 +26,8 @@
     },
     {
       "path": "src/core/chunkloader.js",
-      "size": 11074,
-      "sha256": "591b4464e0b8c6b779eba50bec542c885614374d40983e9d834289a2eaa78673"
+      "size": 11360,
+      "sha256": "68ecf7e9b2a21324b22ebfb8c2b71f38fd302a2d85eb24e1726d90de2af74a32"
     },
     {
       "path": "src/core/entities.js",
@@ -245,8 +246,8 @@
     },
     {
       "path": "changelog.json",
-      "size": 1335,
-      "sha256": "09a821ec5fab700d3b01ca1673886f23ce95c1da56441053d06fae82736c9689"
+      "size": 1436,
+      "sha256": "b9d964128b55c99390da0a7d3a9ea1fa811d8193bd3ab9f5fb2522f618f873e0"
     }
   ]
 }
