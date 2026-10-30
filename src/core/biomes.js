@@ -20,7 +20,7 @@ const NAMES = {
   164: 'savanna_plateau_mutated', 165: 'mesa_bryce', 166: 'mesa_plateau_stone_mutated', 167: 'mesa_plateau_mutated',
   178: 'soulsand_valley', 179: 'crimson_forest', 180: 'warped_forest', 181: 'basalt_deltas', 182: 'jagged_peaks',
   183: 'frozen_peaks', 184: 'snowy_slopes', 185: 'grove', 186: 'meadow', 187: 'lush_caves', 188: 'dripstone_caves',
-  189: 'stony_peaks', 190: 'deep_dark', 191: 'mangrove_swamp', 192: 'cherry_grove', 193: 'pale_garden',
+  189: 'stony_peaks', 190: 'deep_dark', 191: 'mangrove_swamp', 192: 'cherry_grove', 193: 'pale_garden', 194: 'sulfur_caves', 195: 'dappled_forest',
 };
 
 // [temperature, downfall]
@@ -43,7 +43,7 @@ const BIOME_CLIMATE = {
   savanna: [1.2, 0], savanna_plateau: [1, 0], savanna_mutated: [1.1, 0], savanna_plateau_mutated: [1, 0],
   jagged_peaks: [-0.7, 0.9], frozen_peaks: [-0.7, 0.9], snowy_slopes: [-0.3, 0.9], grove: [-0.2, 0.8],
   meadow: [0.3, 0.8], lush_caves: [0.9, 0], dripstone_caves: [0.2, 0], stony_peaks: [1, 0.3], deep_dark: [0.8, 0.4],
-  cherry_grove: [0.3, 0.8], pale_garden: [0.7, 0.8], hell: [2, 0], the_end: [0.5, 0.5],
+  cherry_grove: [0.3, 0.8], pale_garden: [0.7, 0.8], dappled_forest: [0.7, 0.8], sulfur_caves: [0.8, 0.4], hell: [2, 0], the_end: [0.5, 0.5],
 };
 
 const VANILLA_BIOMES = Object.entries(NAMES).map(([id, n]) => [Number(id), 'minecraft:' + n]);

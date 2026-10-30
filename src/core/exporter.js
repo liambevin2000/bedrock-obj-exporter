@@ -38,7 +38,7 @@ class Session {
     const bounds = normalise(sel);
     const origin = opts.origin || [Math.floor((bounds.x0 + bounds.x1 + 1) / 2), bounds.y0, Math.floor((bounds.z0 + bounds.z1 + 1) / 2)];
     return new Mesher(this.world, this.models, { dim: sel.dim || 0, bounds, origin, greedy: opts.greedy, fill: opts.fill, edits: opts.edits, only: opts.only,
-      entities: opts.noEntities ? null : this.entities, minY: this.minY(sel.dim || 0) });
+      entities: opts.noEntities ? null : this.entities, minY: this.minY(sel.dim || 0), blend: opts.blend });
   }
 
   // Writes an OBJ. onProgress(done, total) may return false to cancel.

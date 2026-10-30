@@ -1,18 +1,17 @@
 {
-  "version": "1.1.0",
+  "version": "1.1.1",
   "minShell": "1.0.0",
-  "date": "2026-10-22",
+  "date": "2026-10-30",
   "notes": [
-    "Java Edition worlds: switch the world list to Java at the top left. Modded worlds work too.",
-    "The Java side uses the textures and block models of the world's own game version and its mods.",
-    "Fixed the chunk helper failing to load in Minecraft (\"packs failed to load\") since 1.0.3."
+    "Grass, leaves and water colours now fade across biome borders like in game.",
+    "Fixed biome colours for dappled forest, sulfur caves, swamps, dark forests and add-on biomes."
   ],
   "download": "https://github.com/liambevin2000/bedrock-obj-exporter/releases/latest",
   "files": [
     {
       "path": "src/core/biomes.js",
-      "size": 4381,
-      "sha256": "64a549e6425becf9480a089f1ef595e17c15448f126df777cc71628ea205913a"
+      "size": 4479,
+      "sha256": "069ab4a2e892e2395bd12b1349a59f7668f0eccc22ad5cd642f5bca70cc21bcb"
     },
     {
       "path": "src/core/c4dinstall.js",
@@ -36,8 +35,8 @@
     },
     {
       "path": "src/core/exporter.js",
-      "size": 8163,
-      "sha256": "7c81739133a94cff440d0c81bf8afa71ae45f7a05d6ce1eed1b84b82dc70d44a"
+      "size": 8182,
+      "sha256": "9913f6f98ee36c2de02ebe36556af840cec1bf57a760392ca09386b7107b8cf1"
     },
     {
       "path": "src/core/gallery.js",
@@ -116,13 +115,13 @@
     },
     {
       "path": "src/core/mesher.js",
-      "size": 24342,
-      "sha256": "2a7ec4ae5e32fd8b796091b9ad05844a6435bbf70f32550519b3d1127b96bf28"
+      "size": 26712,
+      "sha256": "bf6a51da0ecab3e2e3cef9778a065cc01e58fbe5263ded0542143248f01ec03c"
     },
     {
       "path": "src/core/models.js",
-      "size": 28295,
-      "sha256": "d94b2294b825d29f0fbfa238038172259321a105e5712b5fecce48d08a8b3ab8"
+      "size": 28764,
+      "sha256": "ac52350f7a12dee47cc0407f9ac3e262b1cc0bfe6bbc20291083862289fd9939"
     },
     {
       "path": "src/core/molang.js",
@@ -156,8 +155,8 @@
     },
     {
       "path": "src/core/resources.js",
-      "size": 22972,
-      "sha256": "0d7f6d326d9818852e7f905daac5806b48fdda386293c20369d3c1b7edf5f52d"
+      "size": 25494,
+      "sha256": "15cda78339db79ed5cca0c4a63eed3936e38243763ec1593139400b02b7ac67a"
     },
     {
       "path": "src/core/simplify.js",
@@ -201,8 +200,8 @@
     },
     {
       "path": "src/ui/app.js",
-      "size": 75829,
-      "sha256": "5343baa8ebe48d93cd0b7d277c2c0dd88fd47124e41d7d95f4c3e0c8c51316e0"
+      "size": 75948,
+      "sha256": "403c1c1afbcef022d88632fc9fc8b76bb74e2bdc4a338e9e8ab414596cbeb567"
     },
     {
       "path": "src/ui/index.html",
@@ -236,8 +235,8 @@
     },
     {
       "path": "src/worker.js",
-      "size": 9178,
-      "sha256": "0ea2c78081489c1b5b0125a558903a7b8116103a8a38ed77db06245812fd65c2"
+      "size": 9242,
+      "sha256": "7cbab2d88889754938a78a6464ef465198a59648c0edb1aa6afcec6657a93c74"
     },
     {
       "path": "c4d-plugin/BedrockWorldImporter.pyp",
@@ -246,8 +245,8 @@
     },
     {
       "path": "changelog.json",
-      "size": 1436,
-      "sha256": "b9d964128b55c99390da0a7d3a9ea1fa811d8193bd3ab9f5fb2522f618f873e0"
+      "size": 1705,
+      "sha256": "511ee44ead58482f3ab8b358fce1739aff3bcdc59e0cd2d3c0ea3cda2d4dc4ab"
     }
   ]
 }

@@ -839,7 +839,7 @@ function objBounds(o = state.obj) {
 function jobScope() {
   const simplify = $('simplify').checked;
   if (state.isolate && state.obj) return { sel: { dim: state.dim, ...objBounds() }, edits: [], only: objEdit(), simplify };
-  return { sel: selArgs(), edits: jobEdits(), noEntities: !$('ents').checked, simplify };
+  return { sel: selArgs(), edits: jobEdits(), noEntities: !$('ents').checked, simplify, blend: !state.noBlend };
 }
 
 function describeObj(o) {
@@ -1213,6 +1213,7 @@ async function runAuto(a) {
     return api.invoke('quit');
   }
   if (a.edition) await setEdition(a.edition);
+  if (a.noBlend) state.noBlend = true; // for comparing biome colours with and without blending
   const w = String(a.world).startsWith('gallery:') ? { dir: 'gallery:', name: 'Shape gallery', size: 1, modified: 0, icon: null }
     : String(a.world).startsWith('java-gallery:') ? { dir: a.world, name: 'Java block gallery', size: 1, modified: 0, icon: null, edition: 'java' }
     : [...state.worlds, ...(state.javaWorlds || [])].find((x) => x.name === a.world || x.dir === a.world);

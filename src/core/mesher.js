@@ -48,6 +48,8 @@ class Mesher {
     if (opts.only || (opts.edits && opts.edits.length)) this._prepareEdits(opts.edits || [], opts.only); this.groundish = []; this.estimated = 0;
     this.minY = opts.minY !== undefined ? opts.minY : DIM_MIN_Y[this.dim] || 0;
     this.chunks = new Map(); // decoded chunk cache
+    this.cols = new Map();   // column data of neighbouring chunks, for blending biome colours
+    this.blend = opts.blend !== false;
     this.cacheLimit = 12;
     this.height = this.b.y1 - this.b.y0 + 1;
     this.H = this.height + 2;
@@ -359,7 +361,8 @@ class Mesher {
     const lx0 = Math.max(b.x0 - cx * 16, 0), lx1 = Math.min(b.x1 - cx * 16, 15);
     const lz0 = Math.max(b.z0 - cz * 16, 0), lz1 = Math.min(b.z1 - cz * 16, 15);
     const models = this.models;
-    const matOf = (slot, x, y, z) => (slot.tintMethod ? models.material(slot, biomeAt(col, x, y + b.y0, z, minY)) : slot.mat);
+    const tints = new Map(); // blended colour per tint kind and block, for this chunk
+    const matOf = (slot, x, y, z) => (slot.tintMethod ? this._tinted(slot, col, cx * 16 + x, y + b.y0, cz * 16 + z, tints) : slot.mat);
     const hidden = (m, nb) => nb.opaque || (m.group !== 0 && nb.group === m.group);
 
     // Greedy masks: one per direction and layer, filled while walking the blocks.
@@ -492,6 +495,52 @@ class Mesher {
       }
     }
     return out.size ? out : null;
+  }
+
+  // Column data (heights and biomes) of any chunk, cached; null when the chunk was never saved.
+  _colAt(wx, wz) {
+    const cx = wx >> 4, cz = wz >> 4, key = cx + ',' + cz;
+    let c = this.cols.get(key);
+    if (c === undefined) {
+      c = this.world.getColumnData(cx, cz, this.dim) || null;
+      this.cols.set(key, c);
+      if (this.cols.size > 96) this.cols.delete(this.cols.keys().next().value);
+    }
+    return c;
+  }
+
+  // The material of a biome-tinted face. Like the game, grass, leaves and water take the average
+  // colour of the biomes in the 5 x 5 columns around them, so colours fade across a biome border
+  // instead of changing from one block to the next. Averages are rounded a little so a border
+  // makes a handful of in-between materials, not one per block.
+  _tinted(slot, col, wx, wy, wz, cache) {
+    const own = biomeAt(col, wx & 15, wy, wz & 15, this.minY);
+    if (!this.blend) return this.models.material(slot, own);
+    const key = slot.tintMethod + '|' + wx + ',' + wy + ',' + wz;
+    let rgb = cache.get(key);
+    if (rgb === undefined) {
+      const ids = [];
+      let mixed = false;
+      for (let dz = -2; dz <= 2; dz++) {
+        for (let dx = -2; dx <= 2; dx++) {
+          const x = wx + dx, z = wz + dz;
+          const c = (x >> 4) === (wx >> 4) && (z >> 4) === (wz >> 4) ? col : this._colAt(x, z);
+          const id = c ? biomeAt(c, x & 15, wy, z & 15, this.minY) : own;
+          if (id !== own) mixed = true;
+          ids.push(id);
+        }
+      }
+      rgb = null;
+      if (mixed) {
+        const sum = [0, 0, 0];
+        for (const id of ids) { const t = this.models.res.biomeTint(slot.tintMethod, id) || [255, 255, 255]; sum[0] += t[0]; sum[1] += t[1]; sum[2] += t[2]; }
+        rgb = sum.map((v) => Math.min(255, Math.round(v / ids.length / 4) * 4));
+        const ownTint = this.models.res.biomeTint(slot.tintMethod, own);
+        if (ownTint && rgb.every((v, i) => Math.abs(v - ownTint[i]) <= 2)) rgb = null; // same as the biome's own colour
+      }
+      cache.set(key, rgb);
+    }
+    return rgb ? this.models.tintedMaterial(slot, rgb) : this.models.material(slot, own);
   }
 
   _liquid(m, kind, gi, x, y, z, baseX, baseY, baseZ, buf, matOf, STEP) {

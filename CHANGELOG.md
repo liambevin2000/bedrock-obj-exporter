@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.1 - 2026-10-30
+
+- Grass, leaves and water colours now fade across biome borders like in game.
+- Fixed biome colours for dappled forest, sulfur caves, swamps, dark forests and add-on biomes.
+
 ## 1.1.0 - 2026-10-22
 
 - Java Edition worlds: switch the world list to Java at the top left. Modded worlds work too.

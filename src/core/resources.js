@@ -383,17 +383,51 @@ class Resources extends TextureLibrary {
           const cb = j['minecraft:client_biome'];
           if (!cb) continue;
           const id = cb.description.identifier, c = cb.components || {};
-          const e = Object.assign({}, out.get(id) || out.get('minecraft:' + id));
-          const col = (x) => (x && typeof x === 'object' && !Array.isArray(x) ? hexToRgb(x.color) : hexToRgb(x));
-          const g = col(c['minecraft:grass_appearance']), fo = col(c['minecraft:foliage_appearance']);
+          const key = id.includes(':') ? id : 'minecraft:' + id;
+          const e = Object.assign({}, out.get(key));
+          // a colour is "#rrggbb", { color: "#rrggbb" } or { color: { color_map: "swamp_grass" } }
+          const set = (kind, v) => {
+            if (v === undefined) return;
+            const inner = v && typeof v === 'object' && !Array.isArray(v) ? v.color : v;
+            if (inner && typeof inner === 'object' && !Array.isArray(inner) && inner.color_map) { e[kind] = String(inner.color_map); return; }
+            const rgb = hexToRgb(inner);
+            if (rgb) e[kind] = rgb;
+          };
+          const grass = c['minecraft:grass_appearance'];
+          set('grass', grass);
+          if (grass && typeof grass === 'object' && grass.grass_is_shaded !== undefined) e.grassShaded = !!grass.grass_is_shaded;
+          set('foliage', c['minecraft:foliage_appearance']);
+          set('dry_foliage', c['minecraft:dry_foliage_color']);
           const wa = c['minecraft:water_appearance'] && hexToRgb(c['minecraft:water_appearance'].surface_color);
-          const dry = col(c['minecraft:dry_foliage_color']);
-          if (g) e.grass = g; if (fo) e.foliage = fo; if (wa) e.water = wa; if (dry) e.dry_foliage = dry;
-          out.set(id.includes(':') ? id : 'minecraft:' + id, e);
+          if (wa) e.water = wa;
+          out.set(key, e);
         } catch (e) { /* skip unreadable biome */ }
       }
     }
     return out;
+  }
+
+  // Temperature and rainfall of a biome: vanilla from the table, add-on biomes from their behavior pack.
+  _climate(name) {
+    const { BIOME_CLIMATE } = require('./biomes');
+    const short = name ? name.replace(/^minecraft:/, '') : 'plains';
+    if (BIOME_CLIMATE[short]) return BIOME_CLIMATE[short];
+    if (!this._addonClimate) {
+      this._addonClimate = new Map();
+      for (const p of this.worldBehaviorPacks) {
+        let files = [];
+        try { files = p.list('biomes'); } catch (e) { files = []; }
+        for (const f of files) {
+          if (!f.endsWith('.json')) continue;
+          try {
+            const b = parseJson(p.read(f).toString('utf8'))['minecraft:biome'];
+            const cl = b && b.components && b.components['minecraft:climate'];
+            if (cl && b.description && b.description.identifier) this._addonClimate.set(b.description.identifier, [Number(cl.temperature) || 0.5, Number(cl.downfall) || 0.5]);
+          } catch (e) { /* skip unreadable biome */ }
+        }
+      }
+    }
+    return this._addonClimate.get(name) || this._addonClimate.get('minecraft:' + short) || null;
   }
 
   // tintMethod: grass | default_foliage | birch_foliage | evergreen_foliage | dry_foliage | water
@@ -406,20 +440,36 @@ class Resources extends TextureLibrary {
     if (!this._clientBiomes) this._clientBiomes = this._loadClientBiomes();
     const name = this._biomeNames.get(biomeId);
     const cb = name && (this._clientBiomes.get(name) || this._clientBiomes.get('minecraft:' + name));
-    c = (cb && cb[tintMethod]) || null;
-    if (!c && (tintMethod === 'grass' || tintMethod === 'foliage')) c = this._colormap(tintMethod, name);
+    c = cb ? cb[tintMethod] : null;
+    if (typeof c === 'string') c = this._colorMap(c, name);
+    if (!c && (tintMethod === 'grass' || tintMethod === 'foliage' || tintMethod === 'dry_foliage')) c = this._colormap(tintMethod, name);
     if (!c) c = FIXED_TINT[tintMethod] || DEFAULT_TINT[tintMethod] || DEFAULT_TINT.grass;
+    // dark forests: the grass colour is shaded darker (as the game's grass_is_shaded does)
+    if (tintMethod === 'grass' && cb && cb.grassShaded) c = [((c[0] & 0xfe) + 0x28) >> 1, ((c[1] & 0xfe) + 0x34) >> 1, ((c[2] & 0xfe) + 0x0a) >> 1];
     this._biomeColors.set(key, c);
     return c;
   }
 
+  // A colour named by a client biome: one of the game's colour maps.
+  _colorMap(map, biomeName) {
+    switch (map) {
+      case 'grass': return this._colormap('grass', biomeName);
+      case 'foliage': return this._colormap('foliage', biomeName);
+      case 'dry_foliage': return this._colormap('dry_foliage', biomeName);
+      case 'swamp_grass': case 'swamp_foliage': return [106, 112, 57];
+      case 'mangrove_swamp_foliage': return [141, 177, 39];
+      case 'birch': return FIXED_TINT.birch_foliage;
+      case 'evergreen': return FIXED_TINT.evergreen_foliage;
+      default: return null;
+    }
+  }
+
+  // Grass, foliage or dry foliage colour from the climate, as the game's colour maps give it.
   _colormap(kind, biomeName) {
-    const { BIOME_CLIMATE } = require('./biomes');
     const short = biomeName ? biomeName.replace(/^minecraft:/, '') : 'plains';
-    const fixed = { swampland: [106, 112, 57], swampland_mutated: [106, 112, 57], mangrove_swamp: [141, 177, 39] };
-    if (fixed[short] && kind === 'grass') return fixed[short];
-    if (/^mesa/.test(short)) return kind === 'grass' ? [144, 129, 77] : [158, 129, 77];
-    const cl = BIOME_CLIMATE[short];
+    if (kind === 'grass' && /^swampland/.test(short)) return [106, 112, 57];
+    if (/^mesa/.test(short) && kind !== 'dry_foliage') return kind === 'grass' ? [144, 129, 77] : [158, 129, 77];
+    const cl = this._climate(biomeName);
     if (!cl) return null;
     const img = this.image(`textures/colormap/${kind}`);
     if (!img) return null;

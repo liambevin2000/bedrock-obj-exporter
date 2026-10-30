@@ -123,6 +123,19 @@ class Models {
     return m;
   }
 
+  // Material for a tinted slot with an exact colour (biome colours blended across a border).
+  tintedMaterial(slot, rgb) {
+    const key = rgb.join(',');
+    let byTint = slot.byTint;
+    if (!byTint) byTint = slot.byTint = new Map();
+    let m = byTint.get(key);
+    if (m === undefined) {
+      m = this.res.material(slot.path, { mode: slot.mode, tint: rgb, alphaMasked: slot.alphaMasked, opacity: slot.opacity });
+      byTint.set(key, m);
+    }
+    return m;
+  }
+
   terrainSlot(shortName, variant, o) {
     const t = shortName ? this.res.terrainTexture(shortName, variant) : null;
     if (!t) return this.slot(null);

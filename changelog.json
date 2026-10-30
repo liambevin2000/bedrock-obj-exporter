@@ -1,5 +1,13 @@
 [
   {
+    "version": "1.1.1",
+    "date": "2026-10-30",
+    "changes": [
+      "Grass, leaves and water colours now fade across biome borders like in game.",
+      "Fixed biome colours for dappled forest, sulfur caves, swamps, dark forests and add-on biomes."
+    ]
+  },
+  {
     "version": "1.1.0",
     "date": "2026-10-22",
     "changes": [

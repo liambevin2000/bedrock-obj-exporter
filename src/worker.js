@@ -81,7 +81,7 @@ const handlers = {
   // Collision shapes and light levels for the previewed selection.
   voxels(a) {
     const { voxelize } = require('./core/voxels');
-    const v = voxelize(session, a.sel, { light: a.light, fill: a.fill, edits: a.edits, only: a.only, noEntities: a.noEntities });
+    const v = voxelize(session, a.sel, { light: a.light, fill: a.fill, edits: a.edits, only: a.only, noEntities: a.noEntities, blend: a.blend });
     const transfer = [v.shape.buffer];
     if (v.light) transfer.push(v.light.buffer);
     return { result: v, transfer };
@@ -90,7 +90,7 @@ const handlers = {
   // Streams the selection as geometry batches: { type:'batch', materials:[...new], groups:[{mat,pos,uv,count}] }
   async preview(a, emit) {
     const token = ++jobToken;
-    const mesher = session.mesher(a.sel, { greedy: a.greedy, origin: a.origin, fill: a.fill, edits: a.edits, only: a.only, noEntities: a.noEntities });
+    const mesher = session.mesher(a.sel, { greedy: a.greedy, origin: a.origin, fill: a.fill, edits: a.edits, only: a.only, noEntities: a.noEntities, blend: a.blend });
     const chunks = mesher.chunkList();
     // nearest-to-centre first so the middle of the selection appears immediately
     const mx = (mesher.b.x0 + mesher.b.x1) / 32, mz = (mesher.b.z0 + mesher.b.z1) / 32;
@@ -125,7 +125,7 @@ const handlers = {
   async exportC4d(a, emit) {
     const token = ++jobToken;
     const { C4dWriter } = require('./core/c4dwriter');
-    const mesher = session.mesher(a.sel, { greedy: a.greedy, fill: a.fill, edits: a.edits, only: a.only, noEntities: a.noEntities });
+    const mesher = session.mesher(a.sel, { greedy: a.greedy, fill: a.fill, edits: a.edits, only: a.only, noEntities: a.noEntities, blend: a.blend });
     const writer = new C4dWriter(a.dir, { name: a.name, scale: a.scale });
     const chunks = mesher.chunkList();
     for (let i = 0; i < chunks.length; i++) {
@@ -142,7 +142,7 @@ const handlers = {
   async export(a, emit) {
     const token = ++jobToken;
     const { ObjWriter } = require('./core/objwriter');
-    const mesher = session.mesher(a.sel, { greedy: a.greedy, fill: a.fill, edits: a.edits, only: a.only, noEntities: a.noEntities });
+    const mesher = session.mesher(a.sel, { greedy: a.greedy, fill: a.fill, edits: a.edits, only: a.only, noEntities: a.noEntities, blend: a.blend });
     const writer = new ObjWriter(a.path, { scale: a.scale });
     const chunks = mesher.chunkList();
     try {
